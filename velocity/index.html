@@ -58,13 +58,13 @@
         .attr('width', width)
         .attr('height', height);
 
-    ballInit();
-    markerInit();
-    controlInit();
+    initBall();
+    initMarker();
+    initControl();
 
     d3.timer(animate);
 
-    function ballInit() {
+    function initBall() {
 
         const ballOffset = 120;
 
@@ -78,7 +78,7 @@
             .attr('id', "ball");
     }
 
-    function markerInit() {
+    function initMarker() {
 
         const markerOffset = {'arrow': 10, 'distText': 6, 'timeText': 20};
 
@@ -126,7 +126,7 @@
 
     }
 
-    function controlInit() {
+    function initControl() {
 
         const controlOffset = {'control': 50, 'arrow': 10, 'velText': 25, 'dragBall': 5};
         const fixedBallRadius = 20;

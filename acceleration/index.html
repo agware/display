@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Acceleration</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <style>
+
+        circle {
+            fill: #2c8f9c;
+            fill-opacity: 1;
+        }
+
+        line {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+
+        text {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .active {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+    'use strict';
+
+    /*Code consists of three main elements
+     * Ball - The moving ball
+     * Control - The draggable control for changing velocity
+     * Dots - The dots demonstrating the velocity at each second in time
+     */
+
+    const width = 700;
+    const height = 350;
+
+    const ballRadius = 38;
+
+    // Dot constants
+    const dotsNum = 4;
+
+    const scalingFactor = 31;
+    const dotScalingFactor = scalingFactor/160;
+    let accInput = {'active': 180, 'min':100, 'max': 240};
+    let accConverted = Math.floor((accInput.active)/scalingFactor)*scalingFactor;
+    let start = Date.now();
+
+    let animation = d3.select('body').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    initBall();
+    initControl();
+    initDots();
+
+    d3.timer(animate);
+
+    function initBall() {
+
+        const ballOffset = 140;
+
+        // Moving ball
+        animation.append('g')
+            .attr('transform', `translate(${ballRadius},${height - ballOffset})`)
+            .attr('id', 'ballContainer');
+        d3.select('#ballContainer').append('circle')
+            .attr('r', ballRadius)
+            .attr('id', 'ball')
+            .style('fill-opacity', 0)
+            .transition()
+            .duration(500)
+            .style('fill-opacity', 1);
+    }
+
+    function initControl() {
+
+        const controlOffset = {'control': 50, 'accText': 20, 'arrow': 10, 'dragBall': 5};
+        const fixedBallRadius = 20;
+
+        animation.append('g')
+            .attr('transform', `translate(${controlOffset.control},${controlOffset.control})`)
+            .attr('id', 'controlContainer');
+        d3.select('#controlContainer').append('text')
+            .attr('x', controlOffset.accText)
+            .attr('y', -controlOffset.accText/3)
+            .attr('id', 'accText');
+
+        // Draggable arrow
+        d3.select('#controlContainer').append('line')
+            .attr('id', 'controlLineBody');
+        d3.select('#controlContainer').append("g")
+            .attr('id', 'draggableContainer');
+        d3.select('#draggableContainer').selectAll('line')
+            .data(d3.range(2))
+            .enter().append('line')
+            .attr('x2', -controlOffset.arrow)
+            .attr('y2', function(d) {return (d ? -1 : 1)*controlOffset.arrow});
+
+        // Draggable ball
+        d3.select('#draggableContainer').append('circle')
+            .attr('cx', -controlOffset.dragBall)
+            .attr('r', fixedBallRadius - controlOffset.dragBall)
+            .style('fill-opacity', 0.2)
+            .call(d3.drag()
+                .on('start', dragStart)
+                .on('drag', dragAcc)
+                .on('end', dragEnd));
+
+        // FixedBall, last so start of arrow is hidden
+        d3.select('#controlContainer').append('circle')
+            .attr('r', fixedBallRadius);
+
+        updateControl();
+    }
+
+    function initDots() {
+
+        const dotRadius = 7;
+        const dotsOffset = {'dots': ballRadius + 3*dotRadius,'arrow': 10};
+
+        d3.select('#ballContainer').append('g')
+            .attr('transform', `translate(0,${-dotsOffset.dots})`)
+            .attr('id','dotsContainer');
+        d3.select('#dotsContainer').selectAll('g')
+            .data(d3.range(dotsNum))
+            .enter().append('g')
+            .attr('transform', function(d) {return `translate(${(1/2)*accConverted*Math.pow(d,2)},0)`; })
+            .attr('id', function(d) {return `dots${d}`; });
+
+        // Each loop generates a dot with velocity arrow at a point in time
+        for(let j=0; j<dotsNum; j++) {
+            d3.select(`#dots${j}`).append('circle')
+                .attr('r', dotRadius)
+                .style('fill', '#000');
+            d3.select(`#dots${j}`).append('line')
+                .attr('x2', accConverted*dotScalingFactor*(j) + scalingFactor)
+                .attr('id', `dotLineBody${j}`);
+
+            d3.select(`#dots${j}`).append('g')
+                .attr('transform', `translate(${accConverted*dotScalingFactor*(j) + scalingFactor},0)`)
+                .attr('id', `arrowHead${j}`)
+                .selectAll('line')
+                .data(d3.range(2))
+                .enter().append('line')
+                .attr('x2', -dotsOffset.arrow)
+                .attr('y2', function(d) {return (d ? -1 : 1) * dotsOffset.arrow; });
+
+            // Text above and below dots
+            let dotText = [{'x': -20, 'y': -20, 'text': `${(accConverted/scalingFactor)*j}m/s`, 'id': `velText${j}`},
+                {'x': -5, 'y': 2*dotsOffset.dots, 'text': `${j}s`, 'id': `timeText${j}`}];
+            d3.select(`#dots${j}`).selectAll('text')
+                .data(dotText)
+                .enter().append('text')
+                .attr('x', function(d) {return d.x; })
+                .attr('y', function(d) {return d.y; })
+                .text(function(d) {return d.text})
+                .attr('id', function(d) {return d.id})
+        }
+    }
+
+    // Animate the movement of the ball across the screen
+    function animate() {
+        let secondCount = (Date.now() - start) / 1000;
+        let loc = (1 / 2) * accConverted * Math.pow(secondCount, 2);
+
+        d3.select('#ball').attr('cx', loc);
+
+        // Reset if the ball is off the page
+        if (loc > width + ballRadius) {
+            loc = 0;
+            d3.select('#ball')
+                .style('fill-opacity', 0)
+                .attr('cx', loc)
+                .transition()
+                .duration(500)
+                .style('fill-opacity', 1);
+            start = Date.now()
+        }
+    }
+
+    function dragStart() {
+        d3.select(this).classed('active', true);
+    }
+
+    function dragAcc() {
+        accInput.active = Math.max(Math.min(d3.event.x+accInput.active, accInput.max), accInput.min);
+        accConverted = Math.floor(accInput.active/scalingFactor)*scalingFactor;
+
+        updateControl();
+        updateDots();
+
+        // Creates a start point so long ago, the reset is triggered in the animation
+        start -= 1000000;
+    }
+
+    function dragEnd() {
+        d3.select(this).classed('active', false);
+    }
+
+    function updateControl() {
+        d3.select('#accText').text(accConverted/scalingFactor + 'm/s²');
+        d3.select('#controlLineBody').attr('x2', accInput.active);
+        d3.select("#draggableContainer").attr('transform', `translate(${accInput.active},0)`);
+    }
+
+    function updateDots() {
+        for (let k=0; k<dotsNum; k++) {
+            d3.select('#dots' + k)
+                .transition()
+                .attr('transform', `translate(${(1/2)*accConverted*Math.pow(k,2)},0)`);
+            d3.select(`#dotLineBody${k}`)
+                .transition()
+                .attr('x2', accConverted*dotScalingFactor*(k) + scalingFactor);
+            d3.select(`#arrowHead${k}`)
+                .transition()
+                .attr('transform', `translate(${accConverted*dotScalingFactor*(k) + scalingFactor},0)`);
+            d3.select(`#velText${k}`).text(`${k*accConverted/scalingFactor}m/s`);
+        }
+    }
+
+</script>
+
+</body>
+</html>

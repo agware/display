@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Velocity</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <style>
+
+        circle {
+            fill: #2c8f9c;
+        }
+
+        line {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+
+        text {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .active {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+    'use strict';
+
+    /*Code consists of three main elements
+    * Ball - The moving ball
+    * Marker - The variable marker denoting distance travelled in a second
+    * Control - The draggable control for changing velocity
+     */
+
+    const width = 700;
+    const height = 350;
+
+    const ballRadius =  60;
+
+    const marker = {'gap': 10, 'height': 100};
+
+    const scalingFactor = 45;
+    let velInput = {'active': 200, 'min': 100, 'max': 300};
+    let velScaled = Math.floor(velInput.active/scalingFactor)*scalingFactor;
+    let start = Date.now();
+
+    let animation = d3.select('body').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    ballInit();
+    markerInit();
+    controlInit();
+
+    d3.timer(animate);
+
+    function ballInit() {
+
+        const ballOffset = 120;
+
+        // Moving ball
+        animation.append('g')
+            .attr('transform', `translate(0,${height-ballOffset})`)
+            .attr('id', 'ballContainer');
+
+        d3.select('#ballContainer').append('circle')
+            .attr('r', ballRadius)
+            .attr('id', "ball");
+    }
+
+    function markerInit() {
+
+        const markerOffset = {'arrow': 10, 'distText': 6, 'timeText': 20};
+
+        d3.select('#ballContainer').append('g')
+            .attr('transform',`translate(${velScaled},${-marker.height})`)
+            .attr('id', 'markerContainer');
+
+        // Marker line and arrow head on the left side
+        d3.select('#markerContainer').selectAll('line')
+            .data(d3.range(3))
+            .enter().append('line')
+            .attr('x1', function(d) {return d ? marker.gap : 0; })
+            .attr('x2', function(d) {return d ? (marker.gap + markerOffset.arrow) : 0; })
+            .attr('y2', function(d) {return d ? (Math.pow(-1, d)*markerOffset.arrow) : marker.height; });
+
+        // Arrow line body
+        d3.select('#markerContainer').append('line')
+            .attr('x1', marker.gap)
+            .attr('x2', velScaled - marker.gap)
+            .attr('id', 'markerLineBody');
+
+        // Text within the marker
+        d3.select('#markerContainer').append('g')
+            .attr('transform', `translate(${(velScaled - marker.gap)/2 - marker.gap},0)`)
+            .attr('id', 'markerTextContainer');
+        d3.select('#markerTextContainer').append('text')
+            .attr('y', -markerOffset.distText)
+            .attr('id', 'distText');
+        d3.select('#markerTextContainer').append('text')
+            .attr('y', markerOffset.timeText)
+            .text('1s');
+
+        // Marker line and arrow head on the right side
+        d3.select('#markerContainer').append('g')
+            .attr('transform', `translate(${velScaled},0)`)
+            .attr('id', 'markerRightSection');
+        d3.select('#markerRightSection').selectAll('line')
+            .data(d3.range(3))
+            .enter().append('line')
+            .attr('x1', function(d) {return d ? -marker.gap : 0; })
+            .attr('x2', function(d) {return d ? -2*marker.gap: 0; })
+            .attr('y2', function(d) {return d ? (Math.pow(-1,d)*markerOffset.arrow) : marker.height; });
+
+        updateMarker();
+
+    }
+
+    function controlInit() {
+
+        const controlOffset = {'control': 50, 'arrow': 10, 'velText': 25, 'dragBall': 5};
+        const fixedBallRadius = 20;
+
+        animation.append('g')
+            .attr('transform', `translate(${controlOffset.control},${controlOffset.control})`)
+            .attr('id', 'controlContainer');
+        d3.select('#controlContainer').append('text')
+            .attr('x', controlOffset.velText)
+            .attr('y', -controlOffset.velText/3)
+            .attr('id', 'velText');
+
+        // Draggable arrow
+        d3.select('#controlContainer').append('line')
+            .attr('id', 'controlLineBody');
+        d3.select('#controlContainer').append('g')
+            .attr('id', 'draggableContainer');
+        d3.select('#draggableContainer').selectAll('line')
+            .data(d3.range(2))
+            .enter().append('line')
+            .attr('x2', -controlOffset.arrow)
+            .attr('y2', function(d) {return (d ? -1 : 1)*controlOffset.arrow; });
+
+        // Draggable ball
+        d3.select('#draggableContainer').append('circle')
+            .attr('cx', -controlOffset.dragBall)
+            .attr('r', fixedBallRadius - controlOffset.dragBall)
+            .style('fill-opacity', 0.2)
+            .call(d3.drag()
+                .on('start', dragStart)
+                .on('drag', dragVel)
+                .on('end', dragEnd));
+
+        // FixedBall, last so start of arrow is hidden
+        d3.select('#controlContainer').append('circle')
+            .attr('r', fixedBallRadius);
+
+        updateControl();
+    }
+
+    // Animate the movement of the ball across the screen
+    function animate() {
+        let secondCount = (Date.now()-start)/1000;
+        let loc = velScaled*secondCount - 3*ballRadius/2;
+
+        // Resets if ball has moved off screen
+        start = (loc > (width + 3*ballRadius) ? Date.now() : start);
+
+        d3.select('#ball').attr('cx', loc);
+    }
+
+    function dragStart() {
+        d3.select(this).classed('active', true);
+    }
+
+    function dragVel() {
+        velInput.active = Math.max(Math.min(d3.event.x + velInput.active, velInput.max), velInput.min);
+        velScaled = Math.floor(velInput.active/scalingFactor)*scalingFactor;
+
+        updateControl();
+        updateMarker();
+
+        // Sends the ball back to the start
+        start = Date.now();
+    }
+
+    function dragEnd() {
+        d3.select(this).classed('active', false)
+    }
+
+    // Update control elements based on input from drag
+    function updateControl() {
+        d3.select('#draggableContainer').attr('transform', `translate(${velInput.active},0)`);
+        d3.select('#controlLineBody').attr('x2', velInput.active);
+        d3.select('#velText').text(`${velScaled/scalingFactor}m/s`);
+    }
+
+    // Update marker elements based on input from drag
+    function updateMarker() {
+        d3.select('#markerContainer')
+            .transition()
+            .attr('transform',`translate(${velScaled},${-marker.height})`);
+
+        d3.select('#markerTextContainer')
+            .transition()
+            .attr('transform', `translate(${(velScaled - marker.gap)/2 - marker.gap},0)`);
+
+        d3.select('#markerRightSection')
+            .transition()
+            .attr('transform', `translate(${velScaled},0)`);
+
+        d3.select('#markerLineBody')
+            .transition()
+            .attr('x2', velScaled - marker.gap);
+
+        d3.select('#distText').text(`${velScaled/scalingFactor}m`);
+    }
+
+</script>
+
+</body>
+</html>

@@ -399,7 +399,7 @@
         for (let k=0; k<numDots; k++) {
             d3.select('#dots' + k)
                 .transition()
-                .attr('transform', 'translate(' + (convert(eqVars[0].active)*k + (1/2)*convert(eqVars[1].active)*Math.pow(k,2)) + ',0)';
+                .attr('transform', 'translate(' + (convert(eqVars[0].active)*k + (1/2)*convert(eqVars[1].active)*Math.pow(k,2)) + ',0)');
             d3.select('#dotLineBody' + k)
                 .transition()
                 .attr('x2', (convert(eqVars[0].active) + convert(eqVars[1].active)*k)*dotScalingFactor + scalingFactor);

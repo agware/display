@@ -47,7 +47,6 @@
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-    'use strict';
 
     const height = 350;
     const animationWidth = 700;
@@ -84,7 +83,8 @@
 
         let animationSvg = d3.select('div#animation').append('svg')
             .attr('width', animationWidth)
-            .attr('height', height);
+            .attr('height', height)
+            .attr('overflow', 'hidden');
 
         initBall();
         initFormula();
@@ -95,7 +95,7 @@
             const ballOffset = 180 - ballRadius;
 
             animationSvg.append('g')
-                .attr('transform', `translate(${ballRadius},${height - ballOffset})`)
+                .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
                 .attr('id', 'ballContainer');
             d3.select('#ballContainer').append('circle')
                 .attr('r', ballRadius)
@@ -114,16 +114,16 @@
             const fontSize = {'letter': 50, 'symbol': 35};
 
             animationSvg.append('g')
-                .attr('transform', `translate(${formulaOffset.x},${formulaOffset.y})`)
+                .attr('transform', 'translate(' + formulaOffset.x + ',' + formulaOffset.y + ')')
                 .attr('id', 'formulaContainer');
             d3.select('#formulaContainer').selectAll('text')
                 .data(formula)
                 .enter().append('text')
                 .attr('x', function(d,i) {return textGap.char*i + textGap.symbol*(i%2) + (i==3 ? 12:0); })
                 .attr('y', 0)
-                .attr('id', function(d,i) {return `formula${i}`; })
+                .attr('id', function(d,i) {return 'formula' + i; })
                 .text(function(d) {return d; })
-                .style('font-size', function(d,i) {return i % 2 ? `${fontSize.symbol}px` : `${fontSize.letter}px`; })
+                .style('font-size', function(d,i) {return i % 2 ? fontSize.symbol + 'px' : fontSize.letter + 'px'; })
         }
 
         function initDots() {
@@ -133,32 +133,32 @@
             const arrowOffset = 10;
 
             d3.select('#ballContainer').append('g')
-                .attr('transform', `translate(0,${-dots.offset})`)
+                .attr('transform', 'translate(0,' + (-dots.offset) + ')')
                 .attr('id', 'dots');
             d3.select('#dots').selectAll('g')
                 .data(d3.range(numDots))
                 .enter().append('g')
-                .attr('transform', function(d) {return `translate(${convert(eqVars[0].active)*distScale*d},0)`; })
-                .attr('id', function(d) {return `dots${d}`; });
+                .attr('transform', function(d) {return 'translate(' + (convert(eqVars[0].active)*distScale*d) + ',0)'; })
+                .attr('id', function(d) {return 'dots' + d; });
 
             for(let j=0; j<numDots; j++) {
-                d3.select(`#dots${j}`).append('circle')
+                d3.select('#dots' + j).append('circle')
                     .attr('r', dots.r)
                     .style('fill', '#000');
 
-                d3.select(`#dots${j}`).append('line')
-                    .attr('id', `dotLineBody${j}`);
-                d3.select(`#dots${j}`).append('g')
-                    .attr('id', `arrowHead${j}`)
+                d3.select('#dots' + j).append('line')
+                    .attr('id', 'dotLineBody' + j);
+                d3.select('#dots' + j).append('g')
+                    .attr('id', 'arrowHead' + j)
                     .selectAll('line')
                     .data(d3.range(2))
                     .enter().append('line')
                     .attr('x2', -arrowOffset)
                     .attr('y2', function(d) {return (d ? -1 : 1) * arrowOffset; });
 
-                let dotText = [{'x': -20, 'y': -20, 'text': `${j ? Math.floor(eqVars[2].active/scalingFactor) : Math.floor(eqVars[1].active/scalingFactor)}m/s`, 'id': `velText${j}`},
-                               {'x': -5, 'y': 2*dots.offset, 'text': `${j ? Math.floor(distScale*eqVars[0].active/scalingFactor) : 0}m`, 'id': `distText${j}`}];
-                d3.select(`#dots${j}`).selectAll('text')
+                let dotText = [{'x': -20, 'y': -20, 'text': (j ? Math.floor(eqVars[2].active/scalingFactor) : Math.floor(eqVars[1].active/scalingFactor)) + 'm/s', 'id': 'velText' + j},
+                               {'x': -5, 'y': 2*dots.offset, 'text': (j ? Math.floor(distScale*eqVars[0].active/scalingFactor) : 0) + 'm', 'id': 'distText' + j}];
+                d3.select('#dots' + j).selectAll('text')
                     .data(dotText)
                     .enter().append('text')
                     .attr('x', function(d) {return d.x; })
@@ -195,7 +195,7 @@
             const button = {'size': 30, 'rx': 5};
 
             controlSvg.append('g')
-                .attr('transform', `translate(${buttonOffset.playX},${buttonOffset.y})`)
+                .attr('transform', 'translate(' + buttonOffset.playX + ',' + buttonOffset.y + ')')
                 .attr('id', 'playContainer')
                 .on('click', clickPlay);
             d3.select('#playContainer').append('rect')
@@ -206,11 +206,11 @@
                 .attr('id', 'play')
                 .classed('active', animation);
             d3.select('#playContainer').append('path')
-                .attr('d', `M${buttonOffset.line} ${buttonOffset.line} L${buttonOffset.line} ${button.size - buttonOffset.line} L${button.size - buttonOffset.line} ${button.size / 2} Z`)
+                .attr('d', 'M ' + buttonOffset.line + ' ' + buttonOffset.line + ' L ' + buttonOffset.line + ' ' + (button.size - buttonOffset.line) + ' L ' + (button.size - buttonOffset.line) + ' ' + (button.size / 2) + ' Z')
                 .style('fill', '#fff');
 
             controlSvg.append('g')
-                .attr('transform', `translate(${buttonOffset.pauseX},${buttonOffset.y})`)
+                .attr('transform', 'translate(' + buttonOffset.pauseX + ',' + buttonOffset.y + ')')
                 .attr('id', 'pauseContainer')
                 .on('click', clickPause);
             d3.select('#pauseContainer').append('rect')
@@ -232,7 +232,7 @@
                 })
                 .attr('y2', button.size - buttonOffset.line)
                 .style('stroke', '#fff')
-                .style('stroke-width', `${button.size / 6}px`);
+                .style('stroke-width', (button.size / 6) + 'px');
 
         }
 
@@ -243,7 +243,7 @@
             const radioText = ['formula', 'numbers'];
 
             controlSvg.append('g')
-                .attr('transform', `translate(${radioOffset.x},${radioOffset.y})`)
+                .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
                 .attr('id', 'radio');
             for (let m = 0; m < radioText.length; m++) {
                 d3.select('#radio').append('circle')
@@ -276,47 +276,47 @@
 
             for (let n = 0; n < eqVars.length; n++) {
                 controlSvg.append('g')
-                    .attr('transform', `translate(${dragOffset.x},${height - dragOffset.y + n * dragOffset.gap})`)
-                    .attr('id', `${eqVars[n].name}Container`);
-                d3.select(`#${eqVars[n].name}Container`).append('text')
+                    .attr('transform', 'translate(' + dragOffset.x + ',' + (height - dragOffset.y + n * dragOffset.gap) + ')')
+                    .attr('id', eqVars[n].name + 'Container');
+                d3.select('#' + eqVars[n].name + 'Container').append('text')
                     .attr('x', -fixedBallRadius)
                     .attr('y', (-3 / 2) * dragOffset.text)
-                    .attr('id', `${eqVars[n].name}Text`);
-                d3.select(`#${eqVars[n].name}Container`).append('line')
-                    .attr('id', `${eqVars[n].name}LineBody`);
-                d3.select(`#${eqVars[n].name}Container`).append('g')
-                    .attr('id', `${eqVars[n].name}DraggableContainer`);
-                d3.select(`#${eqVars[n].name}DraggableContainer`).selectAll('line')
+                    .attr('id', eqVars[n].name + 'Text');
+                d3.select('#' + eqVars[n].name + 'Container').append('line')
+                    .attr('id', eqVars[n].name + 'LineBody');
+                d3.select('#' + eqVars[n].name + 'Container').append('g')
+                    .attr('id', eqVars[n].name + 'DraggableContainer');
+                d3.select('#' + eqVars[n].name + 'DraggableContainer').selectAll('line')
                     .data(d3.range(2))
                     .enter().append('line')
                     .attr('x2', -dragOffset.arrow)
                     .attr('y2', function (d) {
                         return (d ? -1 : 1) * dragOffset.arrow
                     });
-                d3.select(`#${eqVars[n].name}DraggableContainer`).append('circle')
+                d3.select('#' + eqVars[n].name + 'DraggableContainer').append('circle')
                     .attr('cx', -dragOffset.arrow + dragOffset.shift)
                     .attr('r', dragBallRadius)
-                    .attr('id', `${eqVars[n].name}DragBall`)
+                    .attr('id', eqVars[n].name + 'DragBall')
                     .style('fill-opacity', 0.2);
-                d3.select(`#${eqVars[n].name}Container`).append('circle')
+                d3.select('#' + eqVars[n].name + 'Container').append('circle')
                     .attr('r', fixedBallRadius);
 
                 updateDrag(n);
             }
 
-            d3.select(`#${eqVars[0].name}DragBall`)
+            d3.select('#' + eqVars[0].name + 'DragBall')
                 .call(d3.drag()
                     .on('start', dragStart)
                     .on('drag', function () {dragUpdate(0); })
                     .on('end', dragEnd));
 
-            d3.select(`#${eqVars[1].name}DragBall`)
+            d3.select('#' + eqVars[1].name + 'DragBall')
                 .call(d3.drag()
                     .on('start', dragStart)
                     .on('drag', function() {dragUpdate(1); })
                     .on('end', dragEnd));
 
-            d3.select(`#${eqVars[2].name}DragBall`)
+            d3.select('#' + eqVars[2].name + 'DragBall')
                 .call(d3.drag()
                     .on('start', dragStart)
                     .on('drag', function() {dragUpdate(2); })
@@ -403,7 +403,7 @@
 
     function updateFormula() {
         for (let m = 0; m < formula.length; m++) {
-            d3.select(`#formula${m}`).text(formula[m]);
+            d3.select('#formula' + m).text(formula[m]);
         }
     }
 
@@ -420,22 +420,22 @@
 
     function updateDots(index) {
         if (index >= 0) {
-            d3.select(`#velText${index}`).text(`${Math.floor(eqVars[index+1].active/scalingFactor)}m/s`);
-            d3.select(`#dotLineBody${index}`).attr('x2', convert(eqVars[index+1].active)*dotScalingFactor + scalingFactor);
-            d3.select(`#arrowHead${index}`).attr('transform', `translate(${convert(eqVars[index+1].active)*dotScalingFactor + scalingFactor},0)`);
+            d3.select('#velText' + index).text(Math.floor(eqVars[index+1].active/scalingFactor) + 'm/s');
+            d3.select('#dotLineBody' + index).attr('x2', convert(eqVars[index+1].active)*dotScalingFactor + scalingFactor);
+            d3.select('#arrowHead' + index).attr('transform', 'translate(' + (convert(eqVars[index+1].active)*dotScalingFactor + scalingFactor) + ',0)');
 
         } else {
             d3.select('#dots1')
                 .transition()
-                .attr('transform', `translate(${distScale*convert(eqVars[0].active)},0)`);
-            d3.select('#distText1').text(`${distScale*Math.floor(eqVars[0].active/scalingFactor)}m`);
+                .attr('transform', 'translate(' + distScale*convert(eqVars[0].active) + ',0)');
+            d3.select('#distText1').text(distScale*Math.floor(eqVars[0].active/scalingFactor) + 'm');
         }
     }
 
     function updateDrag(index) {
-        d3.select(`#${eqVars[index].name}Text`).text(eqVars[index].eq + (index ? 1 : distScale)*Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
-        d3.select(`#${eqVars[index].name}LineBody`).attr('x2', eqVars[index].active);
-        d3.select(`#${eqVars[index].name}DraggableContainer`).attr('transform', `translate(${eqVars[index].active},0)`);
+        d3.select('#' + eqVars[index].name + 'Text').text(eqVars[index].eq + (index ? 1 : distScale)*Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
+        d3.select('#' + eqVars[index].name + 'LineBody').attr('x2', eqVars[index].active);
+        d3.select('#' + eqVars[index].name + 'DraggableContainer').attr('transform', 'translate(' + eqVars[index].active + ',0)');
     }
 
     function convert(input) {

@@ -35,7 +35,6 @@
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-    'use strict';
 
     /*Code consists of three main elements
      * Ball - The moving ball
@@ -59,7 +58,8 @@
 
     let animation = d3.select('body').append('svg')
         .attr('width', width)
-        .attr('height', height);
+        .attr('height', height)
+        .attr('overflow', 'hidden');
 
     initBall();
     initControl();
@@ -73,7 +73,7 @@
 
         // Moving ball
         animation.append('g')
-            .attr('transform', `translate(${ballRadius},${height - ballOffset})`)
+            .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
             .attr('id', 'ballContainer');
         d3.select('#ballContainer').append('circle')
             .attr('r', ballRadius)
@@ -90,7 +90,7 @@
         const fixedBallRadius = 20;
 
         animation.append('g')
-            .attr('transform', `translate(${controlOffset.control},${controlOffset.control})`)
+            .attr('transform', 'translate(' + controlOffset.control + ',' + controlOffset.control + ')')
             .attr('id', 'controlContainer');
         d3.select('#controlContainer').append('text')
             .attr('x', controlOffset.accText)
@@ -131,26 +131,26 @@
         const dotsOffset = {'dots': ballRadius + 3*dotRadius,'arrow': 10};
 
         d3.select('#ballContainer').append('g')
-            .attr('transform', `translate(0,${-dotsOffset.dots})`)
+            .attr('transform', 'translate(0,' + -dotsOffset.dots + ')')
             .attr('id','dotsContainer');
         d3.select('#dotsContainer').selectAll('g')
             .data(d3.range(dotsNum))
             .enter().append('g')
-            .attr('transform', function(d) {return `translate(${(1/2)*accConverted*Math.pow(d,2)},0)`; })
-            .attr('id', function(d) {return `dots${d}`; });
+            .attr('transform', function(d) {return 'translate(' + ((1/2)*accConverted*Math.pow(d,2)) + ',' + '0)'; })
+            .attr('id', function(d) {return 'dots' + d; });
 
         // Each loop generates a dot with velocity arrow at a point in time
         for(let j=0; j<dotsNum; j++) {
-            d3.select(`#dots${j}`).append('circle')
+            d3.select('#dots' + j).append('circle')
                 .attr('r', dotRadius)
                 .style('fill', '#000');
-            d3.select(`#dots${j}`).append('line')
+            d3.select('#dots' + j).append('line')
                 .attr('x2', accConverted*dotScalingFactor*(j) + scalingFactor)
-                .attr('id', `dotLineBody${j}`);
+                .attr('id', 'dotLineBody' + j);
 
-            d3.select(`#dots${j}`).append('g')
-                .attr('transform', `translate(${accConverted*dotScalingFactor*(j) + scalingFactor},0)`)
-                .attr('id', `arrowHead${j}`)
+            d3.select('#dots' + j).append('g')
+                .attr('transform', 'translate(' + (accConverted*dotScalingFactor*(j) + scalingFactor) + ',0)')
+                .attr('id', 'arrowHead' + j)
                 .selectAll('line')
                 .data(d3.range(2))
                 .enter().append('line')
@@ -158,9 +158,9 @@
                 .attr('y2', function(d) {return (d ? -1 : 1) * dotsOffset.arrow; });
 
             // Text above and below dots
-            let dotText = [{'x': -20, 'y': -20, 'text': `${(accConverted/scalingFactor)*j}m/s`, 'id': `velText${j}`},
-                {'x': -5, 'y': 2*dotsOffset.dots, 'text': `${j}s`, 'id': `timeText${j}`}];
-            d3.select(`#dots${j}`).selectAll('text')
+            let dotText = [{'x': -20, 'y': -20, 'text': ((accConverted/scalingFactor)*j) + 'm/s', 'id': 'velText' + j},
+                {'x': -5, 'y': 2*dotsOffset.dots, 'text': j + 's', 'id': 'timeText' + j}];
+            d3.select('#dots' + j).selectAll('text')
                 .data(dotText)
                 .enter().append('text')
                 .attr('x', function(d) {return d.x; })
@@ -212,21 +212,21 @@
     function updateControl() {
         d3.select('#accText').text(accConverted/scalingFactor + 'm/s²');
         d3.select('#controlLineBody').attr('x2', accInput.active);
-        d3.select("#draggableContainer").attr('transform', `translate(${accInput.active},0)`);
+        d3.select("#draggableContainer").attr('transform', 'translate(' + accInput.active + ',0)');
     }
 
     function updateDots() {
         for (let k=0; k<dotsNum; k++) {
             d3.select('#dots' + k)
                 .transition()
-                .attr('transform', `translate(${(1/2)*accConverted*Math.pow(k,2)},0)`);
-            d3.select(`#dotLineBody${k}`)
+                .attr('transform', 'translate(' + (1/2)*accConverted*Math.pow(k,2) + ',0)');
+            d3.select('#dotLineBody' + k)
                 .transition()
                 .attr('x2', accConverted*dotScalingFactor*(k) + scalingFactor);
-            d3.select(`#arrowHead${k}`)
+            d3.select('#arrowHead' + k)
                 .transition()
-                .attr('transform', `translate(${accConverted*dotScalingFactor*(k) + scalingFactor},0)`);
-            d3.select(`#velText${k}`).text(`${k*accConverted/scalingFactor}m/s`);
+                .attr('transform', 'translate(' + (accConverted*dotScalingFactor*(k) + scalingFactor) + ',0)');
+            d3.select('#velText' + k).text((k*accConverted/scalingFactor) + 'm/s');
         }
     }
 

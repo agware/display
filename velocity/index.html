@@ -34,7 +34,6 @@
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-    'use strict';
 
     /*Code consists of three main elements
     * Ball - The moving ball
@@ -56,7 +55,8 @@
 
     let animation = d3.select('body').append('svg')
         .attr('width', width)
-        .attr('height', height);
+        .attr('height', height)
+        .attr('overflow', 'hidden');
 
     initBall();
     initMarker();
@@ -70,7 +70,7 @@
 
         // Moving ball
         animation.append('g')
-            .attr('transform', `translate(0,${height-ballOffset})`)
+            .attr('transform', 'translate(0,' + (height-ballOffset) + ')')
             .attr('id', 'ballContainer');
 
         d3.select('#ballContainer').append('circle')
@@ -83,7 +83,7 @@
         const markerOffset = {'arrow': 10, 'distText': 6, 'timeText': 20};
 
         d3.select('#ballContainer').append('g')
-            .attr('transform',`translate(${velScaled},${-marker.height})`)
+            .attr('transform', 'translate(' + velScaled + ',' + (-marker.height) + ')')
             .attr('id', 'markerContainer');
 
         // Marker line and arrow head on the left side
@@ -102,7 +102,7 @@
 
         // Text within the marker
         d3.select('#markerContainer').append('g')
-            .attr('transform', `translate(${(velScaled - marker.gap)/2 - marker.gap},0)`)
+            .attr('transform', 'translate(' + ((velScaled - marker.gap)/2 - marker.gap) + ',0)')
             .attr('id', 'markerTextContainer');
         d3.select('#markerTextContainer').append('text')
             .attr('y', -markerOffset.distText)
@@ -113,7 +113,7 @@
 
         // Marker line and arrow head on the right side
         d3.select('#markerContainer').append('g')
-            .attr('transform', `translate(${velScaled},0)`)
+            .attr('transform', 'translate(' + velScaled + ',0)')
             .attr('id', 'markerRightSection');
         d3.select('#markerRightSection').selectAll('line')
             .data(d3.range(3))
@@ -132,7 +132,7 @@
         const fixedBallRadius = 20;
 
         animation.append('g')
-            .attr('transform', `translate(${controlOffset.control},${controlOffset.control})`)
+            .attr('transform', 'translate(' + controlOffset.control + ',' + controlOffset.control + ')')
             .attr('id', 'controlContainer');
         d3.select('#controlContainer').append('text')
             .attr('x', controlOffset.velText)
@@ -199,30 +199,30 @@
 
     // Update control elements based on input from drag
     function updateControl() {
-        d3.select('#draggableContainer').attr('transform', `translate(${velInput.active},0)`);
+        d3.select('#draggableContainer').attr('transform', 'translate(' + velInput.active + ',0)');
         d3.select('#controlLineBody').attr('x2', velInput.active);
-        d3.select('#velText').text(`${velScaled/scalingFactor}m/s`);
+        d3.select('#velText').text((velScaled/scalingFactor) + 'm/s');
     }
 
     // Update marker elements based on input from drag
     function updateMarker() {
         d3.select('#markerContainer')
             .transition()
-            .attr('transform',`translate(${velScaled},${-marker.height})`);
+            .attr('transform', 'translate(' + velScaled + ',' + (-marker.height) + ')');
 
         d3.select('#markerTextContainer')
             .transition()
-            .attr('transform', `translate(${(velScaled - marker.gap)/2 - marker.gap},0)`);
+            .attr('transform', 'translate(' + ((velScaled - marker.gap)/2 - marker.gap) + ',0)');
 
         d3.select('#markerRightSection')
             .transition()
-            .attr('transform', `translate(${velScaled},0)`);
+            .attr('transform', 'translate(' + velScaled + ',0)');
 
         d3.select('#markerLineBody')
             .transition()
             .attr('x2', velScaled - marker.gap);
 
-        d3.select('#distText').text(`${velScaled/scalingFactor}m`);
+        d3.select('#distText').text((velScaled/scalingFactor) + 'm');
     }
 
 </script>

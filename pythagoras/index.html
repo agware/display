@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Pythagorean theorem</title>
+    <title>Fourth Formula</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     <style>
 
         circle {
-            fill: #000;
+            fill: #2c8f9c;
             fill-opacity: 1;
         }
 
@@ -24,12 +24,12 @@
             fill: #000;
         }
 
-        .split {
-            stroke: #808080;
+        #animation {
+            float:left;
         }
 
-        .splitLine {
-            stroke-dasharray: 5, 5;
+        #control {
+            float: left;
         }
 
         .active {
@@ -38,185 +38,328 @@
         }
 
     </style>
+
 </head>
 <body>
 
+<div id="animation"></div>
+<div id="control"></div>
+
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
-    'use strict';
 
     const height = 350;
-    const width = 700;
+    const animationWidth = 700;
+    const controlWidth = 200;
 
-    const formula = ['a²', '+', 'b²', '=', 'c²'];
-    const scalingFactor = 20;
-    let vectorCoords = {'x': 100, 'y': 100};
+    const ballRadius = 38;
 
-    let svg = d3.select('body').append('svg')
-        .attr('width', width)
-        .attr('height', height);
+    const scalingFactor = 29;
+    const dotScalingFactor = scalingFactor/60;
+    const distScale = 4;
 
-    radioInit();
-    formulaInit();
-    triangleInit();
+    const formula = ['x', '=', '½', '(', 'u', '+', 'v', ')', 't'];
+    let eqVars = [{'name': 'dist', 'active': 90, 'eq': 'x = ', 'measure': 'm'},
+                  {'name': 'vel', 'active': 90, 'eq': 'u = ', 'measure': 'm/s'},
+                  {'name': 'vel2', 'active': 90, 'eq': 'v = ', 'measure': 'm/s'}];
 
-    // Initialise everything
+    let start = Date.now();
+    let animation = false;
+    let secondCount = 0;
+    let mem = 0;
 
-    function radioInit() {
+    initAnimation();
+    initControl();
 
-        const radioOffset = {'x': 30, 'y': 60, 'button': 50, 'textX': 20, 'textY': 4};
-        const radioRadius = 15;
-        const radioText = ['formula', 'numbers'];
+    d3.timer(animate);
 
-        svg.append('g')
-            .attr('transform', `translate(${radioOffset.x},${radioOffset.y})`)
-            .attr('id', 'radio');
-        for (let m = 0; m < radioText.length; m++) {
-            d3.select('#radio').append('circle')
-                .attr('cy', radioOffset.button * m)
-                .attr('r', radioRadius)
-                .attr('id', radioText[m] + 'Radio')
-                .style('fill', '#8db6be')
-                .classed('active', !m);
-            d3.select('#radio').append('text')
-                .attr('x', radioOffset.textX)
-                .attr('y', radioOffset.button * m + radioOffset.textY)
-                .text(radioText[m]);
+    function initAnimation() {
+
+        /* Animation consists of three main elements
+         * Ball - moves across screen
+         * Formula - displayed top-center
+         * Dots - demonstrating start and end position
+         */
+
+        let animationSvg = d3.select('div#animation').append('svg')
+            .attr('width', animationWidth)
+            .attr('height', height)
+            .attr('overflow', 'hidden');
+
+        initBall();
+        initFormula();
+        initDots();
+
+        function initBall() {
+
+            const ballOffset = 180 - ballRadius;
+
+            animationSvg.append('g')
+                .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
+                .attr('id', 'ballContainer');
+            d3.select('#ballContainer').append('circle')
+                .attr('r', ballRadius)
+                .attr('id', 'ball')
+                .style('fill-opacity', 0)
+                .transition()
+                .duration(500)
+                .style('fill-opacity', 1);
 
         }
 
-        d3.select('#formulaRadio').on('click', clickFormula);
-        d3.select('#numbersRadio').on('click', clickNumbers);
+        function initFormula() {
 
-    }
+            const formulaOffset = {'x': 230, 'y': 70};
+            const textGap = {'char': 30, 'symbol': 3};
+            const fontSize = {'letter': 50, 'symbol': 35};
 
-    function formulaInit() {
-
-        const formulaOffset = {'x': 1/3*(width), 'y': 70};
-        const fontSize = {'letter': 50, 'symbol': 35};
-
-        svg.append('g')
-            .attr('transform', `translate(${formulaOffset.x},${formulaOffset.y})`)
-            .attr('id', 'formulaContainer');
-        d3.select('#formulaContainer').selectAll('text')
-            .data(d3.range(formula.length))
-            .enter().append('text')
-            .attr('id', function(d) {return `formula${d}`; })
-            .style('font-size', function(d) {return d % 2 ? `${fontSize.symbol}px` : `${fontSize.letter}px`; });
-
-        if (d3.select('#formulaRadio').classed('active')) {
-            updateFormula();
-        } else {
-            updateNumbers();
-        }
-    }
-
-    function triangleInit() {
-
-        triangleContainersInit();
-        arrowHeadInit();
-        lineBodyInit();
-        textInit();
-        ballInit();
-
-        updateTriangle();
-
-        function triangleContainersInit() {
-            svg.append('g')
-                .attr('transform', `translate(${(1/3)*width},${height-20})`)
-                .attr('id', 'triangle');
-            d3.select('#triangle').append('g')
-                .attr('id', 'triangleRight');
-            d3.select('#triangleRight').append('g')
-                .attr('id', 'triangleTop');
-            d3.select('#triangle').append('g')
-                .attr('id', 'velocity');
-            d3.select('#velocity').append('g')
-                .attr('id', 'velocityArrowHead');
+            animationSvg.append('g')
+                .attr('transform', 'translate(' + formulaOffset.x + ',' + formulaOffset.y + ')')
+                .attr('id', 'formulaContainer');
+            d3.select('#formulaContainer').selectAll('text')
+                .data(formula)
+                .enter().append('text')
+                .attr('x', function(d,i) {return textGap.char*i + textGap.symbol*(i%2) + (i==3 ? 12:0); })
+                .attr('y', 0)
+                .attr('id', function(d,i) {return 'formula' + i; })
+                .text(function(d) {return d; })
+                .style('font-size', function(d,i) {return i % 2 ? fontSize.symbol + 'px' : fontSize.letter + 'px'; })
         }
 
-        function arrowHeadInit() {
+        function initDots() {
+
+            const numDots = 2;
+            const dots = {'r': 8, 'offset': ballRadius + 20};
             const arrowOffset = 10;
 
-            // horizontal line arrowHead
-            d3.select('#triangleRight').selectAll('line')
-                .data(d3.range(2))
-                .enter().append('line')
-                .attr('x2', -arrowOffset)
-                .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; })
-                .classed('split', true);
+            d3.select('#ballContainer').append('g')
+                .attr('transform', 'translate(0,' + (-dots.offset) + ')')
+                .attr('id', 'dots');
+            d3.select('#dots').selectAll('g')
+                .data(d3.range(numDots))
+                .enter().append('g')
+                .attr('transform', function(d) {return 'translate(' + (convert(eqVars[0].active)*distScale*d) + ',0)'; })
+                .attr('id', function(d) {return 'dots' + d; });
 
-            // vertical line arrowhead
-            d3.select('#triangleTop').selectAll('line')
-                .data(d3.range(2))
-                .enter().append('line')
-                .attr('x2', function(d) {return (d ? -1 : 1)*arrowOffset; })
-                .attr('y2', arrowOffset)
-                .classed('split', true);
+            for(let j=0; j<numDots; j++) {
+                d3.select('#dots' + j).append('circle')
+                    .attr('r', dots.r)
+                    .style('fill', '#000');
 
-            // vector arrowHead
-            d3.select('#velocityArrowHead').selectAll('line')
-                .data(d3.range(2))
-                .enter().append('line')
-                .attr('x2', -arrowOffset)
-                .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; });
-        }
+                d3.select('#dots' + j).append('line')
+                    .attr('id', 'dotLineBody' + j);
+                d3.select('#dots' + j).append('g')
+                    .attr('id', 'arrowHead' + j)
+                    .selectAll('line')
+                    .data(d3.range(2))
+                    .enter().append('line')
+                    .attr('x2', -arrowOffset)
+                    .attr('y2', function(d) {return (d ? -1 : 1) * arrowOffset; });
 
-        function lineBodyInit() {
-            // horizontal line
-            d3.select('#triangle').append('line')
-                .attr('id', 'horizontalVel')
-                .classed('split', true)
-                .classed('splitLine', true);
-            // vertical line
-            d3.select('#triangleRight').append('line')
-                .attr('id', 'verticalVel')
-                .classed('split', true)
-                .classed('splitLine', true);
-            // vector line
-            d3.select('#velocity').append('line')
-                .attr('id', 'vectorLineBody');
-        }
+                let dotText = [{'x': -20, 'y': -20, 'text': (j ? Math.floor(eqVars[2].active/scalingFactor) : Math.floor(eqVars[1].active/scalingFactor)) + 'm/s', 'id': 'velText' + j},
+                               {'x': -5, 'y': 2*dots.offset, 'text': (j ? Math.floor(distScale*eqVars[0].active/scalingFactor) : 0) + 'm', 'id': 'distText' + j}];
+                d3.select('#dots' + j).selectAll('text')
+                    .data(dotText)
+                    .enter().append('text')
+                    .attr('x', function(d) {return d.x; })
+                    .attr('y', function(d) {return d.y; })
+                    .attr('id', function(d) {return d.id})
+                    .text(function(d) {return d.text});
 
-        function textInit() {
-
-            const textOffset = {'horizontal': 18, 'vertical': -5, 'velocity': -5};
-
-            d3.select('#triangle').append('text')
-                .attr('y', textOffset.horizontal)
-                .attr('id', 'textX');
-            d3.select('#triangleRight').append('text')
-                .attr('transform', 'rotate(90)')
-                .attr('y', textOffset.vertical)
-                .attr('id', 'textY');
-            d3.select('#velocity').append('text')
-                .attr('y', textOffset.velocity)
-                .attr('id', 'textVel');
+                updateDots(j);
+            }
 
         }
 
-        function ballInit() {
+    }
 
-            const ball = {'fixedR': 7, 'dragR': 15};
+    function initControl() {
+        /* Control consists of three main elements
+         * Buttons - Play & pause controls
+         * Radio - Toggle between formula and numbers
+         * Drag - Draggable controls to modify formula inputs
+         */
 
-            // fixed ball
-            d3.select('#triangle').append('circle')
-                .attr('r', ball.fixedR);
-            // draggable ball
-            d3.select('#triangle').append('circle')
-                .attr('r', ball.dragR)
-                .attr('id', 'dragBall')
-                .style('fill-opacity', 0.3)
-                .style('fill', '#2c8f9c')
+        let controlSvg = d3.select('div#control').append('svg')
+            .attr('height', height)
+            .attr('width', controlWidth)
+            .style('border', 'solid black 2px');
+
+        initButtons();
+        initRadio();
+        initDrag();
+
+        function initButtons() {
+
+            const buttonOffset = {'playX': 60, 'pauseX': 110, 'y': 10, 'line': 8};
+            const button = {'size': 30, 'rx': 5};
+
+            controlSvg.append('g')
+                .attr('transform', 'translate(' + buttonOffset.playX + ',' + buttonOffset.y + ')')
+                .attr('id', 'playContainer')
+                .on('click', clickPlay);
+            d3.select('#playContainer').append('rect')
+                .attr('height', button.size)
+                .attr('width', button.size)
+                .attr('rx', button.rx)
+                .attr('fill', '#75b4be')
+                .attr('id', 'play')
+                .classed('active', animation);
+            d3.select('#playContainer').append('path')
+                .attr('d', 'M ' + buttonOffset.line + ' ' + buttonOffset.line + ' L ' + buttonOffset.line + ' ' + (button.size - buttonOffset.line) + ' L ' + (button.size - buttonOffset.line) + ' ' + (button.size / 2) + ' Z')
+                .style('fill', '#fff');
+
+            controlSvg.append('g')
+                .attr('transform', 'translate(' + buttonOffset.pauseX + ',' + buttonOffset.y + ')')
+                .attr('id', 'pauseContainer')
+                .on('click', clickPause);
+            d3.select('#pauseContainer').append('rect')
+                .attr('height', button.size)
+                .attr('width', button.size)
+                .attr('rx', button.rx)
+                .attr('fill', '#75b4be')
+                .attr('id', 'pause')
+                .classed('active', !animation);
+            d3.select('#pauseContainer').selectAll('line')
+                .data(d3.range(2))
+                .enter().append('line')
+                .attr('x1', function (d) {
+                    return (d + 1) * (button.size / 3);
+                })
+                .attr('y1', buttonOffset.line)
+                .attr('x2', function (d) {
+                    return (d + 1) * (button.size / 3);
+                })
+                .attr('y2', button.size - buttonOffset.line)
+                .style('stroke', '#fff')
+                .style('stroke-width', (button.size / 6) + 'px');
+
+        }
+
+        function initRadio() {
+
+            const radioOffset = {'x': 30, 'y': 60, 'button': 50, 'textX': 20, 'textY': 4};
+            const radioRadius = 15;
+            const radioText = ['formula', 'numbers'];
+
+            controlSvg.append('g')
+                .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
+                .attr('id', 'radio');
+            for (let m = 0; m < radioText.length; m++) {
+                d3.select('#radio').append('circle')
+                    .attr('cy', radioOffset.button * m)
+                    .attr('r', radioRadius)
+                    .attr('id', radioText[m] + 'Radio')
+                    .style('fill', '#8db6be')
+                    .classed('active', !m);
+                d3.select('#radio').append('text')
+                    .attr('x', radioOffset.textX)
+                    .attr('y', radioOffset.button * m + radioOffset.textY)
+                    .text(radioText[m]);
+            }
+
+            if (d3.select('#formulaRadio').classed('active')) {
+                updateFormula();
+            } else {
+                updateNumbers();
+            }
+
+            d3.select('#formulaRadio').on('click', clickFormula);
+            d3.select('#numbersRadio').on('click', clickNumbers);
+        }
+
+        function initDrag() {
+
+            const fixedBallRadius = 20;
+            const dragBallRadius = fixedBallRadius - 5;
+            const dragOffset = {'x': fixedBallRadius + 5, 'y': 170, 'gap': 70, 'text': 20, 'dragBall': 5, 'arrow': 10, 'shift': 3};
+
+            for (let n = 0; n < eqVars.length; n++) {
+                controlSvg.append('g')
+                    .attr('transform', 'translate(' + dragOffset.x + ',' + (height - dragOffset.y + n * dragOffset.gap) + ')')
+                    .attr('id', eqVars[n].name + 'Container');
+                d3.select('#' + eqVars[n].name + 'Container').append('text')
+                    .attr('x', -fixedBallRadius)
+                    .attr('y', (-3 / 2) * dragOffset.text)
+                    .attr('id', eqVars[n].name + 'Text');
+                d3.select('#' + eqVars[n].name + 'Container').append('line')
+                    .attr('id', eqVars[n].name + 'LineBody');
+                d3.select('#' + eqVars[n].name + 'Container').append('g')
+                    .attr('id', eqVars[n].name + 'DraggableContainer');
+                d3.select('#' + eqVars[n].name + 'DraggableContainer').selectAll('line')
+                    .data(d3.range(2))
+                    .enter().append('line')
+                    .attr('x2', -dragOffset.arrow)
+                    .attr('y2', function (d) {
+                        return (d ? -1 : 1) * dragOffset.arrow
+                    });
+                d3.select('#' + eqVars[n].name + 'DraggableContainer').append('circle')
+                    .attr('cx', -dragOffset.arrow + dragOffset.shift)
+                    .attr('r', dragBallRadius)
+                    .attr('id', eqVars[n].name + 'DragBall')
+                    .style('fill-opacity', 0.2);
+                d3.select('#' + eqVars[n].name + 'Container').append('circle')
+                    .attr('r', fixedBallRadius);
+
+                updateDrag(n);
+            }
+
+            d3.select('#' + eqVars[0].name + 'DragBall')
                 .call(d3.drag()
-                    .on("start", dragStart)
-                    .on("drag", dragging)
-                    .on("end", dragEnd));
+                    .on('start', dragStart)
+                    .on('drag', function () {dragUpdate(0); })
+                    .on('end', dragEnd));
+
+            d3.select('#' + eqVars[1].name + 'DragBall')
+                .call(d3.drag()
+                    .on('start', dragStart)
+                    .on('drag', function() {dragUpdate(1); })
+                    .on('end', dragEnd));
+
+            d3.select('#' + eqVars[2].name + 'DragBall')
+                .call(d3.drag()
+                    .on('start', dragStart)
+                    .on('drag', function() {dragUpdate(2); })
+                    .on('end', dragEnd));
         }
     }
 
+    function animate() {
+        if (animation) {
+            secondCount = (Date.now() - start) / 1000;
 
-    //On click
+            // t = 2*x/(v+u)
+            let t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
+            // a = (v-u)/t
+            let acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
+            // x = u*t + 1/2*a*t^2
+            let loc = convert(eqVars[1].active)*secondCount + (1/2)*acc*Math.pow(secondCount,2);
+
+            d3.select('#ball').attr('cx', loc);
+
+            if (d3.select('#numbersRadio').classed('active')) updateNumbers();
+
+            if (loc > distScale*convert(eqVars[0].active)) {
+                clickPause();
+                mem = 0;
+
+            }
+        }
+    }
+
+    function clickPlay() {
+        d3.select('#play').classed('active', true);
+        d3.select('#pause').classed('active', false);
+        start = animation ?  start : (Date.now() - mem);
+        animation = true;
+    }
+
+    function clickPause() {
+        d3.select('#play').classed('active', false);
+        d3.select('#pause').classed('active', true);
+        mem = Date.now() - start;
+        animation = false;
+    }
 
     function clickFormula() {
         d3.select(this).classed('active',true);
@@ -232,127 +375,71 @@
         updateNumbers();
     }
 
-
-    // Drags
-
     function dragStart() {
-        d3.select(this).classed("active", true);
+        d3.select(this).classed('active', true);
     }
 
-    function dragging() {
-        const lim = {'minX': 40, 'minY': 40, 'maxX': 200, 'maxY': 200};
+    function dragUpdate(index) {
+        let lim = {'min': 45, 'max': controlWidth-40};
 
-        vectorCoords.x = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
-        vectorCoords.y = Math.max(Math.min(-d3.event.y, lim.maxY), lim.minY);
+        clickPause();
+        mem = 0;
 
-        updateTriangle();
+        d3.select('#ball')
+            .transition()
+            .duration(500)
+            .attr('cx', 0);
 
-        if (d3.select('#numbersRadio').classed('active')) {
-            updateNumbers();
-        }
+        eqVars[index].active = Math.max(Math.min(d3.event.x+eqVars[index].active, lim.max), lim.min);
+        updateDrag(index);
+        if (d3.select('#numbersRadio').classed('active')) updateNumbers();
 
+        updateDots(index-1);
     }
 
     function dragEnd() {
-        d3.select(this).classed("active", false);
-    }
-
-
-    // Dynamic updates
-
-    function updateTriangle() {
-
-        const dragOffset = 4;
-        const rad2deg = 180/Math.PI;
-        const deg2rad = 1/rad2deg;
-
-        let vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
-        let angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
-
-        updateContainers();
-        updateLineBodies();
-
-        d3.select('#dragBall')
-            .attr('cx', vectorCoords.x - dragOffset*Math.cos(angle*deg2rad))
-            .attr('cy', -vectorCoords.y + dragOffset*Math.sin(angle*deg2rad));
-
-        updateText();
-
-        function updateContainers() {
-
-            d3.select('#triangleRight').attr('transform', `translate(${vectorCoords.x},0)`);
-            d3.select('#triangleTop').attr('transform', `translate(0,${-vectorCoords.y})`);
-            d3.select('#velocity').attr('transform', `rotate(${-angle})`);
-            d3.select('#velocityArrowHead').attr('transform', `translate(${vel},0)`);
-
-        }
-
-        function updateLineBodies() {
-
-            d3.select('#vectorLineBody').attr('x2', vel);
-            d3.select('#horizontalVel').attr('x2', vectorCoords.x);
-            d3.select('#verticalVel').attr('y2', -vectorCoords.y);
-
-        }
-
-        function updateText() {
-
-            const textOffset = 5;
-
-            let scaledX = Math.round(vectorCoords.x/scalingFactor);
-            let scaledY = Math.round(vectorCoords.y/scalingFactor);
-            let scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
-
-            d3.select('#textX')
-                .attr('x', vectorCoords.x/2 - textOffset)
-                .text(scaledX);
-            d3.select('#textY')
-                .attr('x', -vectorCoords.y/2)
-                .text(scaledY);
-            d3.select('#textVel')
-                .attr('x', vel/2 - 3*textOffset)
-                .text(scaledVel);
-
-        }
-
+        d3.select(this).classed('active', false);
     }
 
     function updateFormula() {
-
-        const textGap = {'char': 36, 'symbol': 13};
-
         for (let m = 0; m < formula.length; m++) {
-            d3.select(`#formula${m}`)
-                .attr('x', textGap.char*m + textGap.symbol*(m%2))
-                .text(formula[m]);
+            d3.select('#formula' + m).text(formula[m]);
         }
     }
 
     function updateNumbers() {
+        // t = 2*x/(v+u)
+        let t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
+        // a = (v-u)/t
+        let acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
 
-        const numberGap = 25;
+        d3.select('#formula4').text(Math.floor(eqVars[1].active/scalingFactor));
+        d3.select('#formula6').text(Math.floor(eqVars[1].active/scalingFactor) + (acc > 0 ? Math.floor((acc/scalingFactor)*secondCount) : Math.ceil((acc/scalingFactor)*secondCount)));
+        d3.select('#formula8').text(Math.floor(secondCount*10)/10);
+    }
 
-        let tempX = Math.round(vectorCoords.x/scalingFactor);
-        let tempY = Math.round(vectorCoords.y/scalingFactor);
-        let tempVel = Math.round(Math.pow(Math.pow(tempX, 2)+Math.pow(tempY, 2), (1/2))*10)/10;
+    function updateDots(index) {
+        if (index >= 0) {
+            d3.select('#velText' + index).text(Math.floor(eqVars[index+1].active/scalingFactor) + 'm/s');
+            d3.select('#dotLineBody' + index).attr('x2', convert(eqVars[index+1].active)*dotScalingFactor + scalingFactor);
+            d3.select('#arrowHead' + index).attr('transform', 'translate(' + (convert(eqVars[index+1].active)*dotScalingFactor + scalingFactor) + ',0)');
 
-        let chars = d3.range(formula.length).fill(1);
-        let charCount = 0;
-
-        chars[0] += tempX.toString().length;
-        chars[2] += tempY.toString().length;
-        chars[4] += tempVel.toString().length;
-
-        for (let m = 0; m < formula.length; m++) {
-            d3.select(`#formula${m}`)
-                .attr('x', numberGap*charCount);
-            charCount += chars[m];
+        } else {
+            d3.select('#dots1')
+                .transition()
+                .attr('transform', 'translate(' + distScale*convert(eqVars[0].active) + ',0)');
+            d3.select('#distText1').text(distScale*Math.floor(eqVars[0].active/scalingFactor) + 'm');
         }
+    }
 
-        d3.select('#formula0').text(`${tempX}²`);
-        d3.select('#formula2').text(`${tempY}²`);
-        d3.select('#formula4').text(`${tempVel}²`);
+    function updateDrag(index) {
+        d3.select('#' + eqVars[index].name + 'Text').text(eqVars[index].eq + (index ? 1 : distScale)*Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
+        d3.select('#' + eqVars[index].name + 'LineBody').attr('x2', eqVars[index].active);
+        d3.select('#' + eqVars[index].name + 'DraggableContainer').attr('transform', 'translate(' + eqVars[index].active + ',0)');
+    }
 
+    function convert(input) {
+        return Math.floor(input/scalingFactor)*scalingFactor;
     }
 
 </script>

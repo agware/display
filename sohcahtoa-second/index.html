@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SohCahToa2</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    <style>
+
+        circle {
+            fill: #000;
+            fill-opacity: 1;
+        }
+
+
+
+        line {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+
+        text {
+            font-family: 'Open Sans', sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            fill: #000;
+        }
+
+        .split {
+            stroke: #808080;
+        }
+
+        .splitLine {
+            stroke-dasharray: 5, 5;
+        }
+
+        .active {
+            stroke: #000;
+            stroke-width: 2px;
+        }
+
+    </style>
+</head>
+<body>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+
+    const height = 350;
+    const width = 700;
+
+    const formula = [['o', '=', 'h', '*', 'sin', '(', 'θ', ')'],
+                     ['a', '=', 'h', '*', 'cos', '(', 'θ', ')'],
+                     ['o', '=', 'a', '*', 'tan', '(', 'θ', ')']];
+    const scalingFactor = 20;
+    let vectorCoords = {'x': 100, 'y': 100};
+
+    let svg = d3.select('body').append('svg')
+        .attr('width', width)
+        .attr('height', height)
+        .attr('overflow', 'hidden');
+
+    initRadio();
+    initTriangle();
+    initFormula();
+
+    // Initialise everything
+    function initRadio() {
+
+        initTrigRadio();
+        initSwitchRadio();
+
+        function initTrigRadio() {
+            const radioOffset = {'x': 30, 'y': 200, 'button': 50, 'textX': 20, 'textY': 4};
+            const radioRadius = 15;
+            const radioText = ['sin', 'cos', 'tan'];
+
+            svg.append('g')
+                .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
+                .attr('id', 'trigRadio');
+            for (let m = 0; m < radioText.length; m++) {
+                d3.select('#trigRadio').append('circle')
+                    .attr('cy', radioOffset.button * m)
+                    .attr('r', radioRadius)
+                    .attr('id', radioText[m] + 'Radio')
+                    .style('fill', '#8db6be')
+                    .classed('active', !m);
+                d3.select('#trigRadio').append('text')
+                    .attr('x', radioOffset.textX)
+                    .attr('y', radioOffset.button * m + radioOffset.textY)
+                    .text(radioText[m]);
+            }
+
+            d3.select('#sinRadio').on('click', clickSin);
+            d3.select('#cosRadio').on('click', clickCos);
+            d3.select('#tanRadio').on('click', clickTan);
+        }
+
+        function initSwitchRadio() {
+            const radioOffset = {'x': 30, 'y': 60, 'button': 50, 'textX': 20, 'textY': 4};
+            const radioRadius = 15;
+            const radioText = ['formula', 'numbers'];
+
+            svg.append('g')
+                .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
+                .attr('id', 'switchRadio');
+            for (let m = 0; m < radioText.length; m++) {
+                d3.select('#switchRadio').append('circle')
+                    .attr('cy', radioOffset.button * m)
+                    .attr('r', radioRadius)
+                    .attr('id', radioText[m] + 'Radio')
+                    .style('fill', '#8db6be')
+                    .classed('active', !m);
+                d3.select('#switchRadio').append('text')
+                    .attr('x', radioOffset.textX)
+                    .attr('y', radioOffset.button * m + radioOffset.textY)
+                    .text(radioText[m]);
+
+            }
+
+            d3.select('#formulaRadio').on('click', clickFormula);
+            d3.select('#numbersRadio').on('click', clickNumbers);
+        }
+
+    }
+
+    function initTriangle() {
+
+        triangleContainersInit();
+        arrowHeadInit();
+        lineBodyInit();
+        textInit();
+        ballInit();
+
+        updateTriangle();
+
+        function triangleContainersInit() {
+            svg.append('g')
+                .attr('transform', 'translate(' + (1/3)*width + ',' + (height-20) + ')')
+                .attr('id', 'triangle');
+            d3.select('#triangle').append('g')
+                .attr('id', 'angleCurve');
+            d3.select('#triangle').append('g')
+                .attr('id', 'triangleRight');
+            d3.select('#triangleRight').append('g')
+                .attr('id', 'triangleTop');
+            d3.select('#triangle').append('g')
+                .attr('id', 'velocity');
+            d3.select('#velocity').append('g')
+                .attr('id', 'velocityArrowHead');
+        }
+
+        function arrowHeadInit() {
+            const arrowOffset = 10;
+
+            // horizontal line arrowHead
+            d3.select('#triangleRight').selectAll('line')
+                .data(d3.range(2))
+                .enter().append('line')
+                .attr('x2', -arrowOffset)
+                .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; })
+                .classed('split', true);
+
+            // vertical line arrowhead
+            d3.select('#triangleTop').selectAll('line')
+                .data(d3.range(2))
+                .enter().append('line')
+                .attr('x2', function(d) {return (d ? -1 : 1)*arrowOffset; })
+                .attr('y2', arrowOffset)
+                .classed('split', true);
+
+            // vector arrowHead
+            d3.select('#velocityArrowHead').selectAll('line')
+                .data(d3.range(2))
+                .enter().append('line')
+                .attr('x2', -arrowOffset)
+                .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; });
+        }
+
+        function lineBodyInit() {
+            d3.select('#angleCurve').append('clipPath')
+                .attr('id', 'clipAngle')
+                .append('path')
+                .attr('id', 'clipPath');
+            d3.select('#angleCurve').append('circle')
+                .attr('r', 20)
+                .attr('clip-path', 'url(#clipAngle)')
+                .style('fill-opacity', 0)
+                .style('stroke-opacity', 1)
+                .style('stroke', '#000')
+                .style('stroke-width', '2px');
+            // horizontal line
+            d3.select('#triangle').append('line')
+                .attr('id', 'horizontalVel')
+                .classed('split', true)
+                .classed('splitLine', true);
+            // vertical line
+            d3.select('#triangleRight').append('line')
+                .attr('id', 'verticalVel')
+                .classed('split', true)
+                .classed('splitLine', true);
+            // vector line
+            d3.select('#velocity').append('line')
+                .attr('id', 'vectorLineBody');
+        }
+
+        function textInit() {
+
+            const textOffset = {'horizontal': 18, 'vertical': -5, 'velocity': -5};
+
+            d3.select('#triangle').append('text')
+                .attr('id', 'textAngle')
+                .style('font-size', '16px');
+            d3.select('#triangle').append('text')
+                .attr('y', textOffset.horizontal)
+                .attr('id', 'textX');
+            d3.select('#triangleRight').append('text')
+                .attr('transform', 'rotate(90)')
+                .attr('y', textOffset.vertical)
+                .attr('id', 'textY');
+            d3.select('#velocity').append('text')
+                .attr('y', textOffset.velocity)
+                .attr('id', 'textVel');
+
+        }
+
+        function ballInit() {
+
+            const ball = {'fixedR': 7, 'dragR': 15};
+
+            // fixed ball
+            d3.select('#triangle').append('circle')
+                .attr('r', ball.fixedR);
+            // draggable ball
+            d3.select('#triangle').append('circle')
+                .attr('r', ball.dragR)
+                .attr('id', 'dragBall')
+                .style('fill-opacity', 0.3)
+                .style('fill', '#2c8f9c')
+                .call(d3.drag()
+                    .on("start", dragStart)
+                    .on("drag", dragging)
+                    .on("end", dragEnd));
+        }
+    }
+
+    function initFormula() {
+
+        const formulaOffset = {'x': 1/3*(width), 'y': 70};
+        const fontSize = {'letter': 50};
+        const activeFormula = 0;
+
+        svg.append('g')
+            .attr('transform', 'translate(' + formulaOffset.x + ',' + formulaOffset.y + ')')
+            .attr('id', 'formulaContainer');
+        d3.select('#formulaContainer').selectAll('text')
+            .data(d3.range(formula[activeFormula].length))
+            .enter().append('text')
+            .attr('id', function(d) {return 'formula' + d; })
+            .style('font-size', fontSize.letter + 'px');
+
+        clickSin();
+    }
+
+
+
+
+    //On click
+    function clickFormula() {
+        d3.select(this).classed('active',true);
+        d3.select('#numbersRadio').classed('active', false);
+
+        updateFormula();
+    }
+
+    function clickNumbers() {
+        d3.select(this).classed('active',true);
+        d3.select('#formulaRadio').classed('active', false);
+
+        updateNumbers();
+    }
+
+    function clickSin() {
+        d3.select('#sinRadio').classed('active',true);
+        d3.select('#cosRadio').classed('active', false);
+        d3.select('#tanRadio').classed('active', false);
+
+        d3.select('#textX').style('fill', 'rgba(0, 0, 0, 0)');
+        d3.select('#textY').style('fill', 'rgba(0, 0, 0, 1)');
+        d3.select('#textVel').style('fill', 'rgba(0, 0, 0, 1)');
+
+        if (d3.select('#formulaRadio').classed('active')) {
+            updateFormula();
+        } else {
+            updateNumbers();
+        }
+    }
+
+    function clickCos() {
+        d3.select('#sinRadio').classed('active', false);
+        d3.select('#cosRadio').classed('active',true);
+        d3.select('#tanRadio').classed('active', false);
+
+        d3.select('#textX').style('fill', 'rgba(0, 0, 0, 1)');
+        d3.select('#textY').style('fill', 'rgba(0, 0, 0, 0)');
+        d3.select('#textVel').style('fill', 'rgba(0, 0, 0, 1)');
+
+        if (d3.select('#formulaRadio').classed('active')) {
+            updateFormula();
+        } else {
+            updateNumbers();
+        }
+    }
+
+    function clickTan() {
+        d3.select('#sinRadio').classed('active', false);
+        d3.select('#cosRadio').classed('active', false);
+        d3.select('#tanRadio').classed('active',true);
+
+        d3.select('#textX').style('fill', 'rgba(0, 0, 0, 1)');
+        d3.select('#textY').style('fill', 'rgba(0, 0, 0, 1)');
+        d3.select('#textVel').style('fill', 'rgba(0, 0, 0, 0)');
+
+        if (d3.select('#formulaRadio').classed('active')) {
+            updateFormula();
+        } else {
+            updateNumbers();
+        }
+    }
+
+
+    // Drags
+    function dragStart() {
+        d3.select(this).classed("active", true);
+    }
+
+    function dragging() {
+        const lim = {'minX': 80, 'minY': 80, 'maxX': 200, 'maxY': 200};
+
+        vectorCoords.x = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
+        vectorCoords.y = Math.max(Math.min(-d3.event.y, lim.maxY), lim.minY);
+
+        updateTriangle();
+
+        if (d3.select('#numbersRadio').classed('active')) {
+            updateNumbers();
+        }
+
+    }
+
+    function dragEnd() {
+        d3.select(this).classed("active", false);
+    }
+
+
+    // Dynamic updates
+    function updateTriangle() {
+
+        const dragOffset = 4;
+        const rad2deg = 180/Math.PI;
+        const deg2rad = 1/rad2deg;
+
+        let vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
+        let angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
+
+        updateContainers();
+        updateLineBodies();
+
+        d3.select('#dragBall')
+            .attr('cx', vectorCoords.x - dragOffset*Math.cos(angle*deg2rad))
+            .attr('cy', -vectorCoords.y + dragOffset*Math.sin(angle*deg2rad));
+
+        updateText();
+
+        function updateContainers() {
+
+            d3.select('#triangleRight').attr('transform', 'translate(' + vectorCoords.x + ',0)');
+            d3.select('#triangleTop').attr('transform', 'translate(0,' + (-vectorCoords.y) + ')');
+            d3.select('#velocity').attr('transform', 'rotate(' + (-angle) + ')');
+            d3.select('#velocityArrowHead').attr('transform', 'translate(' + vel + ',0)');
+
+        }
+
+        function updateLineBodies() {
+
+            d3.select('#clipPath').attr('d', 'M ' + 0 + ' ' + 0 + ' L ' + vectorCoords.x + ' ' + 0 + ' L ' + vectorCoords.x + ' ' + (-vectorCoords.y) + ' Z');
+            d3.select('#vectorLineBody').attr('x2', vel);
+            d3.select('#horizontalVel').attr('x2', vectorCoords.x);
+            d3.select('#verticalVel').attr('y2', -vectorCoords.y);
+
+        }
+
+        function updateText() {
+
+            const textOffset = 5;
+
+            let scaledX = Math.round(vectorCoords.x/scalingFactor);
+            let scaledY = Math.round(vectorCoords.y/scalingFactor);
+            let scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
+            let scaledAngle = Math.round(Math.atan(scaledY/scaledX)*rad2deg*10)/10;
+
+            d3.select('#textAngle')
+                .attr('x', 5*textOffset + Math.max(0, 2*scaledX - 2*scaledY))
+                .attr('y', -textOffset)
+                .text(scaledAngle + '°');
+            d3.select('#textX')
+                .attr('x', vectorCoords.x/2 - textOffset)
+                .text(scaledX);
+            d3.select('#textY')
+                .attr('x', -vectorCoords.y/2)
+                .text(scaledY);
+            d3.select('#textVel')
+                .attr('x', vel/2 - 3*textOffset)
+                .text(scaledVel);
+        }
+
+    }
+
+    function updateFormula() {
+
+        const textGap = 30;
+
+        let index = 0;
+        if (d3.select('#sinRadio').classed('active')) {
+            index = 0;
+        } else if (d3.select('#cosRadio').classed('active')) {
+            index = 1;
+        } else {
+            index = 2;
+        }
+
+        let chars = d3.range(formula[index].length).fill(1);
+        let charCount = 0;
+        let charOffsets = d3.range(formula[index].length).fill(0);
+        charOffsets[4] = -0.4;
+        charOffsets[5] = -0.5;
+
+        for (let m = 0; m < formula[index].length; m++) {
+            d3.select('#formula' + m)
+                .attr('x', textGap*charCount)
+                .text(formula[index][m]);
+            chars[m] = formula[index][m].length;
+            charCount += (chars[m] + charOffsets[m]);
+        }
+    }
+
+    function updateNumbers() {
+
+        updateFormula();
+
+        const numberGap = 30;
+        const rad2deg = 180/Math.PI;
+
+        let tempX = Math.round(vectorCoords.x/scalingFactor);
+        let tempY = Math.round(vectorCoords.y/scalingFactor);
+        let tempVel = Math.round(Math.pow(Math.pow(tempX, 2)+Math.pow(tempY, 2), (1/2))*10)/10;
+        let tempAngle = Math.round(Math.atan(tempY/tempX)*rad2deg*10)/10;
+
+        let index = 0;
+        if (d3.select('#sinRadio').classed('active')) {
+            index = 0;
+        } else if (d3.select('#cosRadio').classed('active')) {
+            index = 1;
+        } else {
+            index = 2;
+        }
+
+        let chars = d3.range(formula[index].length).fill(1);
+        let charCount = 0;
+        let charOffsets = d3.range(formula[index].length).fill(0);
+        charOffsets[2] = -0.5;
+        charOffsets[4] = -0.4;
+        charOffsets[5] = -0.5;
+
+        for (let m = 0; m < formula[index].length; m++) {
+            chars[m] = formula[index][m].length;
+        }
+        switch(index) {
+            case 0:
+                chars[2] = tempVel.toString().length;
+                d3.select('#formula2').text(tempVel);
+                chars[6] = tempAngle.toString().length;
+                d3.select('#formula6').text(tempAngle);
+                break;
+            case 1:
+                chars[2] = tempVel.toString().length;
+                d3.select('#formula2').text(tempVel);
+                chars[6] = tempAngle.toString().length;
+                d3.select('#formula6').text(tempAngle);
+                break;
+            case 2:
+                charOffsets[2] = 0;
+                chars[2] = tempX.toString().length;
+                d3.select('#formula2').text(tempX);
+                chars[6] = tempAngle.toString().length;
+                d3.select('#formula6').text(tempAngle);
+                break;
+        }
+
+        for (let m = 0; m < formula[index].length; m++) {
+            d3.select('#formula' + m)
+                .attr('x', numberGap*charCount);
+            charCount -= (chars[m] > 3 && m == 6) ? 0.7 : 0;
+            charCount += (chars[m] + charOffsets[m]);
+        }
+
+
+
+
+
+    }
+
+</script>
+
+</body>
+</html>

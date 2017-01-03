@@ -429,9 +429,12 @@
             index = 2;
         }
 
-        let chars = d3.range(formula[index].length).fill(1);
+        let chars = d3.range(formula[index].length);
         let charCount = 0;
-        let charOffsets = d3.range(formula[index].length).fill(0);
+        let charOffsets = d3.range(formula[index].length);
+        for (let i = 0; i < charOffsets.length; i++) {
+            charOffsets[i] = 0;
+        }
         charOffsets[4] = -0.4;
         charOffsets[5] = -0.5;
 
@@ -465,9 +468,12 @@
             index = 2;
         }
 
-        let chars = d3.range(formula[index].length).fill(1);
+        let chars = d3.range(formula[index].length);
         let charCount = 0;
-        let charOffsets = d3.range(formula[index].length).fill(0);
+        let charOffsets = d3.range(formula[index].length);
+        for (let i = 0; i < charOffsets.length; i++) {
+            charOffsets[i] = 0;
+        }
         charOffsets[2] = -0.5;
         charOffsets[4] = -0.4;
         charOffsets[5] = -0.5;

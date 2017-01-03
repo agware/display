@@ -52,11 +52,11 @@
 
     const scalingFactor = 31;
     const dotScalingFactor = scalingFactor/160;
-    let accInput = {'active': 180, 'min':100, 'max': 240};
-    let accConverted = Math.floor((accInput.active)/scalingFactor)*scalingFactor;
-    let start = Date.now();
+    var accInput = {'active': 180, 'min':100, 'max': 240};
+    var accConverted = Math.floor((accInput.active)/scalingFactor)*scalingFactor;
+    var start = Date.now();
 
-    let animation = d3.select('body').append('svg')
+    var animation = d3.select('body').append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('overflow', 'hidden');
@@ -140,7 +140,7 @@
             .attr('id', function(d) {return 'dots' + d; });
 
         // Each loop generates a dot with velocity arrow at a point in time
-        for(let j=0; j<dotsNum; j++) {
+        for(var j=0; j<dotsNum; j++) {
             d3.select('#dots' + j).append('circle')
                 .attr('r', dotRadius)
                 .style('fill', '#000');
@@ -158,7 +158,7 @@
                 .attr('y2', function(d) {return (d ? -1 : 1) * dotsOffset.arrow; });
 
             // Text above and below dots
-            let dotText = [{'x': -20, 'y': -20, 'text': ((accConverted/scalingFactor)*j) + 'm/s', 'id': 'velText' + j},
+            var dotText = [{'x': -20, 'y': -20, 'text': ((accConverted/scalingFactor)*j) + 'm/s', 'id': 'velText' + j},
                 {'x': -5, 'y': 2*dotsOffset.dots, 'text': j + 's', 'id': 'timeText' + j}];
             d3.select('#dots' + j).selectAll('text')
                 .data(dotText)
@@ -172,8 +172,8 @@
 
     // Animate the movement of the ball across the screen
     function animate() {
-        let secondCount = (Date.now() - start) / 1000;
-        let loc = (1 / 2) * accConverted * Math.pow(secondCount, 2);
+        var secondCount = (Date.now() - start) / 1000;
+        var loc = (1 / 2) * accConverted * Math.pow(secondCount, 2);
 
         d3.select('#ball').attr('cx', loc);
 
@@ -216,7 +216,7 @@
     }
 
     function updateDots() {
-        for (let k=0; k<dotsNum; k++) {
+        for (var k = 0; k < dotsNum; k++) {
             d3.select('#dots' + k)
                 .transition()
                 .attr('transform', 'translate(' + (1/2)*accConverted*Math.pow(k,2) + ',0)');

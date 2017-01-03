@@ -49,9 +49,9 @@
 
     const formula = ['a²', '+', 'b²', '=', 'c²'];
     const scalingFactor = 20;
-    let vectorCoords = {'x': 100, 'y': 100};
+    var vectorCoords = {'x': 100, 'y': 100};
 
-    let svg = d3.select('body').append('svg')
+    var svg = d3.select('body').append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('overflow', 'hidden');
@@ -71,7 +71,7 @@
         svg.append('g')
             .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
             .attr('id', 'radio');
-        for (let m = 0; m < radioText.length; m++) {
+        for (var m = 0; m < radioText.length; m++) {
             d3.select('#radio').append('circle')
                 .attr('cy', radioOffset.button * m)
                 .attr('r', radioRadius)
@@ -266,8 +266,8 @@
         const rad2deg = 180/Math.PI;
         const deg2rad = 1/rad2deg;
 
-        let vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
-        let angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
+        var vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
+        var angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
 
         updateContainers();
         updateLineBodies();
@@ -299,9 +299,9 @@
 
             const textOffset = 5;
 
-            let scaledX = Math.round(vectorCoords.x/scalingFactor);
-            let scaledY = Math.round(vectorCoords.y/scalingFactor);
-            let scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
+            var scaledX = Math.round(vectorCoords.x/scalingFactor);
+            var scaledY = Math.round(vectorCoords.y/scalingFactor);
+            var scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
 
             d3.select('#textX')
                 .attr('x', vectorCoords.x/2 - textOffset)
@@ -321,7 +321,7 @@
 
         const textGap = {'char': 36, 'symbol': 13};
 
-        for (let m = 0; m < formula.length; m++) {
+        for (var m = 0; m < formula.length; m++) {
             d3.select('#formula' + m)
                 .attr('x', textGap.char*m + textGap.symbol*(m%2))
                 .text(formula[m]);
@@ -332,21 +332,21 @@
 
         const numberGap = 25;
 
-        let tempX = Math.round(vectorCoords.x/scalingFactor);
-        let tempY = Math.round(vectorCoords.y/scalingFactor);
-        let tempVel = Math.round(Math.pow(Math.pow(tempX, 2)+Math.pow(tempY, 2), (1/2))*10)/10;
+        var tempX = Math.round(vectorCoords.x/scalingFactor);
+        var tempY = Math.round(vectorCoords.y/scalingFactor);
+        var tempVel = Math.round(Math.pow(Math.pow(tempX, 2)+Math.pow(tempY, 2), (1/2))*10)/10;
 
-        let chars = d3.range(formula.length);
-        for (let i = 0; i < chars.length; i++) {
+        var chars = d3.range(formula.length);
+        for (var i = 0; i < chars.length; i++) {
             chars[i] = 1;
         }
-        let charCount = 0;
+        var charCount = 0;
 
         chars[0] += tempX.toString().length;
         chars[2] += tempY.toString().length;
         chars[4] += tempVel.toString().length;
 
-        for (let m = 0; m < formula.length; m++) {
+        for (var m = 0; m < formula.length; m++) {
             d3.select('#formula' + m)
                 .attr('x', numberGap*charCount);
             charCount += chars[m];

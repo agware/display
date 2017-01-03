@@ -54,9 +54,9 @@
                      ['cos', '(', 'θ', ')=', 'a', '/', 'h'],
                      ['tan', '(', 'θ', ')=', 'o', '/', 'a']];
     const scalingFactor = 20;
-    let vectorCoords = {'x': 100, 'y': 100};
+    var vectorCoords = {'x': 100, 'y': 100};
 
-    let svg = d3.select('body').append('svg')
+    var svg = d3.select('body').append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('overflow', 'hidden');
@@ -79,7 +79,7 @@
             svg.append('g')
                 .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
                 .attr('id', 'trigRadio');
-            for (let m = 0; m < radioText.length; m++) {
+            for (var m = 0; m < radioText.length; m++) {
                 d3.select('#trigRadio').append('circle')
                     .attr('cy', radioOffset.button * m)
                     .attr('r', radioRadius)
@@ -105,7 +105,7 @@
             svg.append('g')
                 .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
                 .attr('id', 'switchRadio');
-            for (let m = 0; m < radioText.length; m++) {
+            for (var m = 0; m < radioText.length; m++) {
                 d3.select('#switchRadio').append('circle')
                     .attr('cy', radioOffset.button * m)
                     .attr('r', radioRadius)
@@ -361,8 +361,8 @@
         const rad2deg = 180/Math.PI;
         const deg2rad = 1/rad2deg;
 
-        let vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
-        let angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
+        var vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
+        var angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
 
         updateContainers();
         updateLineBodies();
@@ -396,10 +396,10 @@
             const textOffset = 5;
 
 
-            let scaledX = Math.round(vectorCoords.x/scalingFactor);
-            let scaledY = Math.round(vectorCoords.y/scalingFactor);
-            let scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
-            let scaledAngle = Math.round(Math.atan(scaledY/scaledX)*rad2deg*10)/10;
+            var scaledX = Math.round(vectorCoords.x/scalingFactor);
+            var scaledY = Math.round(vectorCoords.y/scalingFactor);
+            var scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
+            var scaledAngle = Math.round(Math.atan(scaledY/scaledX)*rad2deg*10)/10;
 
             d3.select('#textAngle')
                 .attr('x', 5*textOffset + Math.max(0, 2*scaledX - 2*scaledY))
@@ -422,7 +422,7 @@
 
         const textGap = 25;
 
-        let index = 0;
+        var index = 0;
         if (d3.select('#sinRadio').classed('active')) {
             index = 0;
         } else if (d3.select('#cosRadio').classed('active')) {
@@ -431,17 +431,17 @@
             index = 2;
         }
 
-        let chars = d3.range(formula[index].length);
-        let charCount = 0;
-        let charOffsets = d3.range(formula[index].length);
-        for (let i = 0; i < charOffsets.length; i++) {
+        var chars = d3.range(formula[index].length);
+        var charCount = 0;
+        var charOffsets = d3.range(formula[index].length);
+        for (var i = 0; i < charOffsets.length; i++) {
             charOffsets[i] = 0;
         }
 
         charOffsets[1] = -0.5;
         charOffsets[4] = .5;
 
-        for (let m = 0; m < formula[index].length; m++) {
+        for (var m = 0; m < formula[index].length; m++) {
             d3.select('#formula' + m)
                 .attr('x', textGap*charCount)
                 .text(formula[index][m]);
@@ -456,11 +456,11 @@
 
         const numberGap = 25;
 
-        let tempX = Math.round(vectorCoords.x/scalingFactor);
-        let tempY = Math.round(vectorCoords.y/scalingFactor);
-        let tempVel = Math.round(Math.pow(Math.pow(tempX, 2)+Math.pow(tempY, 2), (1/2))*10)/10;
+        var tempX = Math.round(vectorCoords.x/scalingFactor);
+        var tempY = Math.round(vectorCoords.y/scalingFactor);
+        var tempVel = Math.round(Math.pow(Math.pow(tempX, 2)+Math.pow(tempY, 2), (1/2))*10)/10;
 
-        let index = 0;
+        var index = 0;
         if (d3.select('#sinRadio').classed('active')) {
             index = 0;
         } else if (d3.select('#cosRadio').classed('active')) {
@@ -469,17 +469,17 @@
             index = 2;
         }
 
-        let chars = d3.range(formula[index].length);
-        let charCount = 0;
-        let charOffsets = d3.range(formula[index].length);
-        for (let i = 0; i < charOffsets.length; i++) {
+        var chars = d3.range(formula[index].length);
+        var charCount = 0;
+        var charOffsets = d3.range(formula[index].length);
+        for (var i = 0; i < charOffsets.length; i++) {
             charOffsets[i] = 0;
         }
 
         charOffsets[1] = -0.5;
         charOffsets[4] = -0.5;
 
-        for (let m = 0; m < formula[index].length; m++) {
+        for (var m = 0; m < formula[index].length; m++) {
             chars[m] = formula[index][m].length;
         }
         switch(index) {
@@ -503,7 +503,7 @@
                 break;
         }
 
-        for (let m = 0; m < formula[index].length; m++) {
+        for (var m = 0; m < formula[index].length; m++) {
             d3.select('#formula' + m)
                 .attr('x', numberGap*charCount);
             charCount += (chars[m] + charOffsets[m]);

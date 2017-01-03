@@ -59,14 +59,14 @@
     const distScale = 4;
 
     const formula = ['x', '=', '½', '(', 'u', '+', 'v', ')', 't'];
-    let eqVars = [{'name': 'dist', 'active': 90, 'eq': 'x = ', 'measure': 'm'},
+    var eqVars = [{'name': 'dist', 'active': 90, 'eq': 'x = ', 'measure': 'm'},
                   {'name': 'vel', 'active': 90, 'eq': 'u = ', 'measure': 'm/s'},
                   {'name': 'vel2', 'active': 90, 'eq': 'v = ', 'measure': 'm/s'}];
 
-    let start = Date.now();
-    let animation = false;
-    let secondCount = 0;
-    let mem = 0;
+    var start = Date.now();
+    var animation = false;
+    var secondCount = 0;
+    var mem = 0;
 
     initAnimation();
     initControl();
@@ -81,7 +81,7 @@
          * Dots - demonstrating start and end position
          */
 
-        let animationSvg = d3.select('div#animation').append('svg')
+        var animationSvg = d3.select('div#animation').append('svg')
             .attr('width', animationWidth)
             .attr('height', height)
             .attr('overflow', 'hidden');
@@ -141,7 +141,7 @@
                 .attr('transform', function(d) {return 'translate(' + (convert(eqVars[0].active)*distScale*d) + ',0)'; })
                 .attr('id', function(d) {return 'dots' + d; });
 
-            for(let j=0; j<numDots; j++) {
+            for(var j = 0; j < numDots; j++) {
                 d3.select('#dots' + j).append('circle')
                     .attr('r', dots.r)
                     .style('fill', '#000');
@@ -156,7 +156,7 @@
                     .attr('x2', -arrowOffset)
                     .attr('y2', function(d) {return (d ? -1 : 1) * arrowOffset; });
 
-                let dotText = [{'x': -20, 'y': -20, 'text': (j ? Math.floor(eqVars[2].active/scalingFactor) : Math.floor(eqVars[1].active/scalingFactor)) + 'm/s', 'id': 'velText' + j},
+                var dotText = [{'x': -20, 'y': -20, 'text': (j ? Math.floor(eqVars[2].active/scalingFactor) : Math.floor(eqVars[1].active/scalingFactor)) + 'm/s', 'id': 'velText' + j},
                                {'x': -5, 'y': 2*dots.offset, 'text': (j ? Math.floor(distScale*eqVars[0].active/scalingFactor) : 0) + 'm', 'id': 'distText' + j}];
                 d3.select('#dots' + j).selectAll('text')
                     .data(dotText)
@@ -180,7 +180,7 @@
          * Drag - Draggable controls to modify formula inputs
          */
 
-        let controlSvg = d3.select('div#control').append('svg')
+        var controlSvg = d3.select('div#control').append('svg')
             .attr('height', height)
             .attr('width', controlWidth)
             .style('border', 'solid black 2px');
@@ -245,7 +245,7 @@
             controlSvg.append('g')
                 .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
                 .attr('id', 'radio');
-            for (let m = 0; m < radioText.length; m++) {
+            for (var m = 0; m < radioText.length; m++) {
                 d3.select('#radio').append('circle')
                     .attr('cy', radioOffset.button * m)
                     .attr('r', radioRadius)
@@ -274,7 +274,7 @@
             const dragBallRadius = fixedBallRadius - 5;
             const dragOffset = {'x': fixedBallRadius + 5, 'y': 170, 'gap': 70, 'text': 20, 'dragBall': 5, 'arrow': 10, 'shift': 3};
 
-            for (let n = 0; n < eqVars.length; n++) {
+            for (var n = 0; n < eqVars.length; n++) {
                 controlSvg.append('g')
                     .attr('transform', 'translate(' + dragOffset.x + ',' + (height - dragOffset.y + n * dragOffset.gap) + ')')
                     .attr('id', eqVars[n].name + 'Container');
@@ -329,11 +329,11 @@
             secondCount = (Date.now() - start) / 1000;
 
             // t = 2*x/(v+u)
-            let t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
+            var t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
             // a = (v-u)/t
-            let acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
+            var acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
             // x = u*t + 1/2*a*t^2
-            let loc = convert(eqVars[1].active)*secondCount + (1/2)*acc*Math.pow(secondCount,2);
+            var loc = convert(eqVars[1].active)*secondCount + (1/2)*acc*Math.pow(secondCount,2);
 
             d3.select('#ball').attr('cx', loc);
 
@@ -380,7 +380,7 @@
     }
 
     function dragUpdate(index) {
-        let lim = {'min': 45, 'max': controlWidth-40};
+        var lim = {'min': 45, 'max': controlWidth-40};
 
         clickPause();
         mem = 0;
@@ -402,16 +402,16 @@
     }
 
     function updateFormula() {
-        for (let m = 0; m < formula.length; m++) {
+        for (var m = 0; m < formula.length; m++) {
             d3.select('#formula' + m).text(formula[m]);
         }
     }
 
     function updateNumbers() {
         // t = 2*x/(v+u)
-        let t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
+        var t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
         // a = (v-u)/t
-        let acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
+        var acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
 
         d3.select('#formula4').text(Math.floor(eqVars[1].active/scalingFactor));
         d3.select('#formula6').text(Math.floor(eqVars[1].active/scalingFactor) + (acc > 0 ? Math.floor((acc/scalingFactor)*secondCount) : Math.ceil((acc/scalingFactor)*secondCount)));

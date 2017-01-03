@@ -49,11 +49,11 @@
     const marker = {'gap': 10, 'height': 100};
 
     const scalingFactor = 45;
-    let velInput = {'active': 200, 'min': 100, 'max': 300};
-    let velScaled = Math.floor(velInput.active/scalingFactor)*scalingFactor;
-    let start = Date.now();
+    var velInput = {'active': 200, 'min': 100, 'max': 300};
+    var velScaled = Math.floor(velInput.active/scalingFactor)*scalingFactor;
+    var start = Date.now();
 
-    let animation = d3.select('body').append('svg')
+    var animation = d3.select('body').append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('overflow', 'hidden');
@@ -169,8 +169,8 @@
 
     // Animate the movement of the ball across the screen
     function animate() {
-        let secondCount = (Date.now()-start)/1000;
-        let loc = velScaled*secondCount - 3*ballRadius/2;
+        var secondCount = (Date.now()-start)/1000;
+        var loc = velScaled*secondCount - 3*ballRadius/2;
 
         // Resets if ball has moved off screen
         start = (loc > (width + 3*ballRadius) ? Date.now() : start);

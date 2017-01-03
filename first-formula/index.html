@@ -56,13 +56,13 @@
 
     const formula = ['v', '=', 'u', '+', 'a', 'x', 't'];
 
-    let eqVars = [{'name': 'vel', 'active': 90, 'eq': 'u = ', 'measure': 'm/s'},
+    var eqVars = [{'name': 'vel', 'active': 90, 'eq': 'u = ', 'measure': 'm/s'},
                   {'name': 'acc', 'active': 60, 'eq': 'a = ', 'measure': 'm/s²'}];
 
-    let start = Date.now();
-    let animation = true;
-    let secondCount = 0;
-    let mem = 0;
+    var start = Date.now();
+    var animation = true;
+    var secondCount = 0;
+    var mem = 0;
 
     initAnimation();
     initControl();
@@ -77,7 +77,7 @@
          * Dots - demonstrating the velocity at each second in time
          */
 
-        let animationSvg = d3.select('div#animation').append('svg')
+        var animationSvg = d3.select('div#animation').append('svg')
             .attr('width', animationWidth)
             .attr('height', height)
             .attr('overflow', 'hidden');
@@ -136,7 +136,7 @@
                 .attr('transform', function(d) {return 'translate(' + (convert(eqVars[0].active)*d + (1/2)*convert(eqVars[1].active)*Math.pow(d,2)) + ',0)'; })
                 .attr('id', function(d) {return 'dots' + d; });
 
-            for(let j=0; j<numDots; j++) {
+            for(var j = 0; j < numDots; j++) {
                 d3.select('#dots' + j).append('circle')
                     .attr('r', dots.r)
                     .style('fill', '#000');
@@ -154,7 +154,7 @@
                     .attr('x2', -arrowOffset)
                     .attr('y2', function(d) {return (d ? -1 : 1) * arrowOffset; });
 
-                let dotText = [{'x': -20, 'y': -20, 'text': (convert(eqVars[0].active)/scalingFactor + (convert(eqVars[1].active)/scalingFactor)*j) + 'm/s', 'id': 'velText' + j},
+                var dotText = [{'x': -20, 'y': -20, 'text': (convert(eqVars[0].active)/scalingFactor + (convert(eqVars[1].active)/scalingFactor)*j) + 'm/s', 'id': 'velText' + j},
                                {'x': -5, 'y': 2*dots.offset, 'text': j + 's', 'id': 'timeText' + j}];
                 d3.select('#dots' + j).selectAll('text')
                     .data(dotText)
@@ -175,7 +175,7 @@
          * Drag - Draggable controls to modify formula inputs
          */
 
-        let controlSvg = d3.select('div#control').append('svg')
+        var controlSvg = d3.select('div#control').append('svg')
             .attr('height', height)
             .attr('width', controlWidth)
             .attr('overflow', 'hidden')
@@ -240,7 +240,7 @@
             controlSvg.append('g')
                 .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
                 .attr('id', 'radio');
-            for (let m = 0; m < radioText.length; m++) {
+            for (var m = 0; m < radioText.length; m++) {
                 d3.select('#radio').append('circle')
                     .attr('cy', radioOffset.button * m)
                     .attr('r', radioRadius)
@@ -270,7 +270,7 @@
             const dragBallRadius = fixedBallRadius - 5;
             const dragOffset = {'x': fixedBallRadius + 5, 'y': 120, 'gap': 90, 'accText': 20, 'dragBall': 5, 'arrow': 10, 'shift': 3};
 
-            for (let n = 0; n < eqVars.length; n++) {
+            for (var n = 0; n < eqVars.length; n++) {
                 controlSvg.append('g')
                     .attr('transform', 'translate(' + dragOffset.x + ',' + (height - dragOffset.y + n * dragOffset.gap) + ')')
                     .attr('id', eqVars[n].name + 'Container');
@@ -318,7 +318,7 @@
     function animate() {
         if (animation) {
             secondCount = (Date.now() - start) / 1000;
-            let loc = convert(eqVars[0].active) * secondCount + (1 / 2) * convert(eqVars[1].active) * Math.pow(secondCount, 2);
+            var loc = convert(eqVars[0].active) * secondCount + (1 / 2) * convert(eqVars[1].active) * Math.pow(secondCount, 2);
             d3.select('#ball').attr('cx', loc);
 
             if (d3.select('#numbersRadio').classed('active')) {
@@ -371,7 +371,7 @@
     }
 
     function dragUpdate(index) {
-        let lim = {'min': 45, 'max': controlWidth-40};
+        var lim = {'min': 45, 'max': controlWidth-40};
         eqVars[index].active = Math.max(Math.min(d3.event.x+eqVars[index].active, lim.max), lim.min);
 
         updateDrag(index);
@@ -384,7 +384,7 @@
     }
 
     function updateFormula() {
-        for (let m = 0; m < formula.length; m++) {
+        for (var m = 0; m < formula.length; m++) {
             d3.select('#formula' + m).text(formula[m]);
         }
     }
@@ -396,7 +396,7 @@
     }
 
     function updateDots() {
-        for (let k=0; k<numDots; k++) {
+        for (var k = 0; k < numDots; k++) {
             d3.select('#dots' + k)
                 .transition()
                 .attr('transform', 'translate(' + (convert(eqVars[0].active)*k + (1/2)*convert(eqVars[1].active)*Math.pow(k,2)) + ',0)');

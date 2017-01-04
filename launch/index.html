@@ -49,7 +49,7 @@
     const height = 500;
     const ballDim = {'x': 50, 'y': 100, 'r': 20};
     const velBall = {'r': 15, 'opacity': 0.3};
-    const vectorCoords = {'x': 100, 'y': 100};
+    const vectorCoords = {'x': 50, 'y': 50};
     const arrowOffset = 8;
     const colour = d3.scaleOrdinal(d3.schemeCategory10);
 
@@ -57,6 +57,7 @@
     var start = Date.now();
     var mem = 0;
     var launchCount = 0;
+    var markerCount = 0;
 
     var svg = d3.select('body').append('svg')
         .attr('width', width)
@@ -314,12 +315,15 @@
             var tempX = vectorCoords.x*t + ballDim.x;
             var tempY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
 
-            // ToDo: Cycle colors of flightPath
-            d3.select('#flightPath').append('circle')
-                .attr('r', 2)
-                .attr('cx', tempX)
-                .attr('cy', height - tempY)
-                .style('fill', colour(launchCount % 10));
+            if (t >= markerCount) {
+                d3.select('#flightPath').append('circle')
+                    .attr('r', 2)
+                    .attr('cx', tempX)
+                    .attr('cy', height - tempY)
+                    .style('fill', colour(launchCount % 10));
+
+                markerCount += 0.1;
+            }
 
             d3.select('#ball')
                 .attr('cx', tempX)
@@ -327,7 +331,6 @@
 
             if (tempX > (width + 2*ballDim.r) || tempY < -2*ballDim.r) {
                 clickPause();
-                mem = 0;
                 resetBall();
             }
         }
@@ -358,7 +361,6 @@
         launchCount = 0;
         setTimeout(function() {d3.select('#reset').classed('active', false); }, 200);
         clickPause();
-        mem = 0;
         d3.select('#flightPath').selectAll('circle').remove();
         resetBall();
     }
@@ -416,6 +418,9 @@
             .transition()
             .duration(500)
             .style('fill-opacity', 1);
+
+        mem = 0;
+        markerCount = 0;
     }
 
     function updateTriangle() {

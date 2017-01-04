@@ -48,7 +48,7 @@
     const width = 700;
     const height = 500;
     const ballDim = {'x': 50, 'y': 100, 'r': 20};
-    const velBall = {'r': 15, 'opacity': 0.3};
+    const velBall = {'r': 15};
     const vectorCoords = {'x': 50, 'y': 50};
     const arrowOffset = 8;
     const colour = d3.scaleOrdinal(d3.schemeCategory10);
@@ -204,7 +204,7 @@
                 d3.select('#triangle').append('circle')
                     .attr('r', velBall.r)
                     .attr('id', 'velBall')
-                    .style('fill-opacity', velBall.opacity)
+                    .style('fill-opacity', 0.3)
                     .style('fill', '#2c8f9c')
                     .call(d3.drag()
                         .on("start", dragStart)
@@ -309,6 +309,7 @@
     function animateBall() {
         if (animate) {
             const g = -9.81;
+
             var t = (Date.now() - start)/100;
 
             // x = ut + (1/2)at^2 + (starting position)
@@ -397,8 +398,14 @@
         if (!animate) {
             var lim = {'minX': 0, 'minY': 0, 'maxX': width - ballDim.x - velBall.r, 'maxY': height - ballDim.y - velBall.r};
 
-            vectorCoords.x = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
-            vectorCoords.y = Math.max(Math.min(-d3.event.y, lim.maxY), lim.minY);
+            var tempX = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
+            var tempY = Math.max(Math.min(-d3.event.y, lim.maxY), lim.minY);
+            var tempR = Math.sqrt(Math.pow(tempX,2) + Math.pow(tempY,2));
+
+            if ((tempR - velBall.r) >= ballDim.r) {
+                vectorCoords.x = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
+                vectorCoords.y = Math.max(Math.min(-d3.event.y, lim.maxY), lim.minY);
+            }
 
             updateTriangle();
         }
@@ -432,14 +439,12 @@
         var vel = Math.sqrt(Math.pow(vectorCoords.x,2) + Math.pow(vectorCoords.y,2));
         var angle = Math.atan(vectorCoords.y/vectorCoords.x)*rad2deg;
 
-        if ((vel - velBall.r) >= ballDim.r) {
-            updateContainers();
-            updateLineBodies();
+        updateContainers();
+        updateLineBodies();
 
-            d3.select('#velBall')
-                .attr('cx', vectorCoords.x - dragOffset*Math.cos(angle*deg2rad))
-                .attr('cy', -vectorCoords.y + dragOffset*Math.sin(angle*deg2rad));
-        }
+        d3.select('#velBall')
+            .attr('cx', vectorCoords.x - dragOffset*Math.cos(angle*deg2rad))
+            .attr('cy', -vectorCoords.y + dragOffset*Math.sin(angle*deg2rad));
 
         function updateContainers() {
 

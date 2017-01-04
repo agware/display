@@ -73,6 +73,8 @@
 
     d3.timer(animate);
 
+
+    // Initialise everything
     function initAnimation() {
 
         /* Animation consists of three main elements
@@ -324,6 +326,8 @@
         }
     }
 
+
+    // Animate
     function animate() {
         if (animation) {
             secondCount = (Date.now() - start) / 1000;
@@ -347,6 +351,8 @@
         }
     }
 
+
+    // On click
     function clickPlay() {
         d3.select('#play').classed('active', true);
         d3.select('#pause').classed('active', false);
@@ -375,6 +381,8 @@
         updateNumbers();
     }
 
+
+    // On drag
     function dragStart() {
         d3.select(this).classed('active', true);
     }
@@ -401,6 +409,8 @@
         d3.select(this).classed('active', false);
     }
 
+
+    // Update elements
     function updateFormula() {
         for (var m = 0; m < formula.length; m++) {
             d3.select('#formula' + m).text(formula[m]);
@@ -438,6 +448,8 @@
         d3.select('#' + eqVars[index].name + 'DraggableContainer').attr('transform', 'translate(' + eqVars[index].active + ',0)');
     }
 
+
+    // Utils
     function convert(input) {
         return Math.floor(input/scalingFactor)*scalingFactor;
     }

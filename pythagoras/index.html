@@ -113,15 +113,15 @@
 
     function initTriangle() {
 
-        triangleContainersInit();
-        arrowHeadInit();
-        lineBodyInit();
-        textInit();
-        ballInit();
+        initTriangleContainers();
+        initArrowHead();
+        initLineBody();
+        initText();
+        initBall();
 
         updateTriangle();
 
-        function triangleContainersInit() {
+        function initTriangleContainers() {
             svg.append('g')
                 .attr('transform', 'translate(' + (1/3)*width + ',' + (height-20) + ')')
                 .attr('id', 'triangle');
@@ -135,7 +135,7 @@
                 .attr('id', 'velocityArrowHead');
         }
 
-        function arrowHeadInit() {
+        function initArrowHead() {
             const arrowOffset = 10;
 
             // horizontal line arrowHead
@@ -162,7 +162,7 @@
                 .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; });
         }
 
-        function lineBodyInit() {
+        function initLineBody() {
             // horizontal line
             d3.select('#triangle').append('line')
                 .attr('id', 'horizontalVel')
@@ -178,7 +178,7 @@
                 .attr('id', 'vectorLineBody');
         }
 
-        function textInit() {
+        function initText() {
 
             const textOffset = {'horizontal': 18, 'vertical': -5, 'velocity': -5};
 
@@ -195,7 +195,7 @@
 
         }
 
-        function ballInit() {
+        function initBall() {
 
             const ball = {'fixedR': 7, 'dragR': 15};
 

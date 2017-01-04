@@ -69,7 +69,6 @@
 
     d3.timer(animate);
 
-
     // Initialise everything
     function initAnimation() {
 
@@ -354,8 +353,11 @@
     function clickPause() {
         d3.select('#play').classed('active', false);
         d3.select('#pause').classed('active', true);
-        mem = Date.now() - start;
-        animation = false;
+
+        if (animate) {
+            mem = Date.now() - start;
+            animate = false;
+        }
     }
 
     function clickFormula() {
@@ -428,6 +430,7 @@
 
 
     // Utils
+
     function convert(input) {
         return Math.floor(input/scalingFactor)*scalingFactor;
     }

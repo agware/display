@@ -353,8 +353,10 @@
         d3.select('#play').classed('active', false);
         d3.select('#pause').classed('active', true);
 
-        mem = Date.now() - start;
-        animate = false;
+        if (animate) {
+            mem = Date.now() - start;
+            animate = false;
+        }
     }
 
     function clickReset() {

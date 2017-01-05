@@ -37,6 +37,10 @@
             stroke-width: 2px;
         }
 
+        .hover {
+            fill: #2a6d7a;
+        }
+
     </style>
 
 </head>
@@ -91,7 +95,9 @@
             .call(d3.drag()
                 .on("start", dragStart)
                 .on("drag", dragActiveBall)
-                .on("end", dragEnd));
+                .on("end", dragEnd))
+            .on("mouseover", mouseOver)
+            .on("mouseout", mouseOut);
 
         resetBall();
     }
@@ -312,23 +318,27 @@
 
             var t = (Date.now() - start)/100;
 
-            // x = ut + (1/2)at^2 + (starting position)
-            var tempX = vectorCoords.x*t + ballDim.x;
-            var tempY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
+            while (markerCount <= t) {
+                console.log(t + ', ' + markerCount);
+                var tempX = vectorCoords.x*markerCount + ballDim.x;
+                var tempY = vectorCoords.y*markerCount + (1/2)*(g)*Math.pow(markerCount, 2) + ballDim.y;
 
-            if (t >= markerCount) {
                 d3.select('#flightPath').append('circle')
                     .attr('r', 2)
                     .attr('cx', tempX)
                     .attr('cy', height - tempY)
                     .style('fill', colour(launchCount % 10));
 
-                markerCount += 0.1;
+                markerCount += 0.2;
             }
 
+            // x = ut + (1/2)at^2 + (starting position)
+            var dimX = vectorCoords.x*t + ballDim.x;
+            var dimY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
+
             d3.select('#ball')
-                .attr('cx', tempX)
-                .attr('cy', height - tempY);
+                .attr('cx', dimX)
+                .attr('cy', height - dimY);
 
             if (tempX > (width + 2*ballDim.r) || tempY < -2*ballDim.r) {
                 clickPause();
@@ -415,6 +425,16 @@
 
     function dragEnd() {
         d3.select(this).classed("active", false);
+    }
+
+
+    // On mouse over
+    function mouseOver() {
+        d3.select(this).classed('hover', true);
+    }
+
+    function mouseOut() {
+        d3.select(this).classed('hover', false);
     }
 
 

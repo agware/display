@@ -42,6 +42,10 @@
             stroke-width: 2px;
         }
 
+        .hover {
+            fill: #2a6d7a;
+        }
+
     </style>
 
 </head>
@@ -104,7 +108,9 @@
                 .call(d3.drag()
                     .on("start", dragStart)
                     .on("drag", dragActiveBall)
-                    .on("end", dragEnd));
+                    .on("end", dragEnd))
+                .on("mouseover", mouseOver)
+                .on("mouseout", mouseOut);
 
             resetBall();
         }
@@ -420,15 +426,15 @@
 
             var t = (Date.now() - start)/100;
 
-            // x = ut + (1/2)at^2 + (starting position)
-            var tempX = vectorCoords.x*t + ballDim.x;
-            var tempY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
-
-            // v = u + at
-            var tempVelX = vectorCoords.x;
-            var tempVelY = vectorCoords.y + g*t;
-
             if (t >= markerCount) {
+                // x = ut + (1/2)at^2 + (starting position)
+                var tempX = vectorCoords.x*markerCount + ballDim.x;
+                var tempY = vectorCoords.y*markerCount + (1/2)*(g)*Math.pow(markerCount, 2) + ballDim.y;
+
+                // v = u + at
+                var tempVelX = vectorCoords.x;
+                var tempVelY = vectorCoords.y + g*markerCount;
+
                 d3.select('#flightPath').append('g')
                     .attr('transform', 'translate(' + tempX + ',' + (height-tempY) + ')')
                     .attr('id', 'flight' + launchCount + 'container' + markerCount);
@@ -470,9 +476,13 @@
                 markerCount += 2;
             }
 
+            // x = ut + (1/2)at^2 + (starting position)
+            var dimX = vectorCoords.x*t + ballDim.x;
+            var dimY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
+
             d3.select('#ball')
-                .attr('cx', tempX)
-                .attr('cy', height - tempY);
+                .attr('cx', dimX)
+                .attr('cy', height - dimY);
 
             if (tempX > (animationWidth + 2*ballDim.r) || tempY < -2*ballDim.r) {
                 clickPause();
@@ -488,7 +498,7 @@
         d3.select('#pause').classed('active', false);
 
         launchCount += (mem == 0 && !animate) ? 1 : 0;
-
+        console.log(mem);
         start = animate ? start : (Date.now() - mem);
         animate = true;
     }
@@ -585,6 +595,16 @@
 
     function dragEnd() {
         d3.select(this).classed("active", false);
+    }
+
+
+    // On mouse over
+    function mouseOver() {
+        d3.select(this).classed('hover', true);
+    }
+
+    function mouseOut() {
+        d3.select(this).classed('hover', false);
     }
 
 

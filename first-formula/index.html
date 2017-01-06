@@ -354,9 +354,9 @@
         d3.select('#play').classed('active', false);
         d3.select('#pause').classed('active', true);
 
-        if (animate) {
+        if (animation) {
             mem = Date.now() - start;
-            animate = false;
+            animation = false;
         }
     }
 

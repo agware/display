@@ -5,33 +5,14 @@
     <title>Acceleration</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <style>
-
-        circle {
-            fill: #2c8f9c;
-            fill-opacity: 1;
-        }
-
-        line {
-            stroke: #000;
-            stroke-width: 2px;
-        }
-
-        text {
-            font-family: 'Open Sans', sans-serif;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .active {
-            stroke: #000;
-            stroke-width: 2px;
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="../scripts/styles.css">
 
 </head>
 <body>
+
+<div id="wrapper">
+    <div id="container"></div>
+</div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script>
@@ -52,15 +33,20 @@
 
     const scalingFactor = 31;
     const dotScalingFactor = scalingFactor/160;
+    const ballOffset = 140;
     var accInput = {'active': 180, 'min':100, 'max': 240};
     var accConverted = Math.floor((accInput.active)/scalingFactor)*scalingFactor;
     var start = Date.now();
 
-    var animation = d3.select('body').append('svg')
+    var animation = d3.select('#container').append('svg')
         .attr('width', width)
         .attr('height', height)
         .attr('overflow', 'hidden');
+    animation.append('g')
+        .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
+        .attr('id', 'ballContainer');
 
+    initCurtain();
     initBall();
     initControl();
     initDots();
@@ -69,12 +55,6 @@
 
     function initBall() {
 
-        const ballOffset = 140;
-
-        // Moving ball
-        animation.append('g')
-            .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
-            .attr('id', 'ballContainer');
         d3.select('#ballContainer').append('circle')
             .attr('r', ballRadius)
             .attr('id', 'ball')
@@ -113,6 +93,7 @@
             .attr('cx', -controlOffset.dragBall)
             .attr('r', fixedBallRadius - controlOffset.dragBall)
             .style('fill-opacity', 0.2)
+            .classed('clickable', true)
             .call(d3.drag()
                 .on('start', dragStart)
                 .on('drag', dragAcc)
@@ -170,6 +151,21 @@
         }
     }
 
+    function initCurtain() {
+        const curtainNum = 2*dotsNum;
+
+        d3.select('#ballContainer').append('g')
+            .attr('id', 'curtainContainer')
+            .selectAll('circle')
+            .data(d3.range(curtainNum)).enter()
+            .append('circle')
+            .attr('r', ballRadius)
+            .attr('id', function(d) {return 'curtain' + d; })
+            .style('fill', '#9ab6be');
+
+        updateCurtain();
+    }
+
     // Animate the movement of the ball across the screen
     function animate() {
         var secondCount = (Date.now() - start) / 1000;
@@ -200,6 +196,7 @@
 
         updateControl();
         updateDots();
+        updateCurtain();
 
         // Creates a start point so long ago, the reset is triggered in the animation
         start -= 1000000;
@@ -227,6 +224,17 @@
                 .transition()
                 .attr('transform', 'translate(' + (accConverted*dotScalingFactor*(k) + scalingFactor) + ',0)');
             d3.select('#velText' + k).text((k*accConverted/scalingFactor) + 'm/s');
+        }
+    }
+
+    function updateCurtain() {
+        var curtainNum = d3.select('#curtainContainer').selectAll('circle').size();
+
+        for (var i = 0; i < curtainNum; i++) {
+            d3.select('#curtain' + i)
+                .transition()
+                .duration(750)
+                .attr('cx', (1/2)*accConverted*Math.pow(i/2, 2));
         }
     }
 

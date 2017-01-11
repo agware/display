@@ -5,48 +5,18 @@
     <title>Projectile</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <style>
-
-        circle {
-            fill: #2c8f9c;
-            fill-opacity: 1;
-        }
-
-        line {
-            stroke: #000;
-            stroke-width: 2px;
-        }
-
-        text {
-            font-family: 'Open Sans', sans-serif;
-            font-size: 18px;
-            font-weight: bold;
-            fill: #000;
-        }
-
-        .split {
-            stroke: #808080;
-        }
-
-        .splitLine {
-            stroke-dasharray: 5, 5;
-        }
-
-        .active {
-            stroke: #000;
-            stroke-width: 2px;
-        }
-
-        .hover {
-            fill: #2a6d7a;
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="../scripts/styles.css">
 
 </head>
 <body>
 
+<div id="wrapper">
+    <div id="container"></div>
+</div>
+
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../scripts/actionButtons.js" type="text/javascript"></script>
+
 <script>
 
     const width = 700;
@@ -57,327 +27,218 @@
     const arrowOffset = 8;
     const colour = d3.scaleOrdinal(d3.schemeCategory10);
 
-    var animate = false;
-    var start = Date.now();
-    var mem = 0;
-    var launchCount = 0;
     var markerCount = 0;
+    var animation = {'start': Date.now(), 'mem': 0, 'state': false};
 
-    var svg = d3.select('body').append('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('overflow', 'hidden')
-        .style('border', '1px solid black');
+    init();
 
-    initArrows();
-    initBall();
-    initButtons();
+    function init() {
 
-    d3.timer(animateBall);
+        var svg = d3.select('#container').append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .attr('overflow', 'hidden')
+            .style('border', '1px solid black');
 
-
-    // Initialise everything
-    function initBall() {
+        initArrows();
+        initBall();
 
         svg.append('g')
-            .attr('id', 'flightPath');
+            .attr('transform', 'translate(' + (width-200) + ',0)')
+            .attr('id', 'buttonContainer');
+        initButtons(d3.select('#buttonContainer'), animation, true);
 
-        svg.append('circle')
-            .attr('cx', ballDim.x)
-            .attr('cy', height - ballDim.y)
-            .attr('r', ballDim.r)
-            .attr('id', 'shadowBall')
-            .style('fill-opacity', 0.3);
+        d3.timer(animateBall);
 
-        svg.append('circle')
-            .attr('r', ballDim.r)
-            .attr('id', 'ball')
-            .call(d3.drag()
-                .on("start", dragStart)
-                .on("drag", dragActiveBall)
-                .on("end", dragEnd))
-            .on("mouseover", mouseOver)
-            .on("mouseout", mouseOut);
 
-        resetBall();
-    }
+        // Initialise everything
+        function initBall() {
 
-    function initArrows() {
-
-        initHeightArrow();
-        initTriangle();
-
-        function initHeightArrow() {
+            var launchCount = 0;
             svg.append('g')
-                .attr('transform', 'translate(' + ballDim.x + ',' + height + ')')
-                .attr('id', 'heightArrowContainer');
+                .attr('id', 'flightPath')
+                .datum(launchCount);
 
-            d3.select('#heightArrowContainer').append('line')
-                .attr('id', 'heightLineBody');
+            svg.append('circle')
+                .attr('cx', ballDim.x)
+                .attr('cy', height - ballDim.y)
+                .attr('r', ballDim.r)
+                .attr('id', 'shadowBall')
+                .style('fill-opacity', 0.3);
 
-            initArrowHeads();
+            svg.append('circle')
+                .attr('r', ballDim.r)
+                .attr('id', 'ball')
+                .classed('clickable', true)
+                .call(d3.drag()
+                    .on("start", dragStart)
+                    .on("drag", dragActiveBall)
+                    .on("end", dragEnd))
+                .on("mouseover", mouseOver)
+                .on("mouseout", mouseOut);
 
-            updateHeightArrow();
-
-            function initArrowHeads() {
-                d3.select('#heightArrowContainer').append('g')
-                    .attr('id', 'heightArrowHeadContainer');
-
-                d3.select('#heightArrowHeadContainer').selectAll('line')
-                    .data(d3.range(2))
-                    .enter().append('line')
-                    .attr('x2', function(d) {return (d ? -1 : 1) * arrowOffset; })
-                    .attr('y2', -arrowOffset);
-
-                d3.select('#heightArrowContainer').append('g')
-                    .attr('id', 'heightTopArrowHeadContainer');
-
-                d3.select('#heightTopArrowHeadContainer').selectAll('line')
-                    .data(d3.range(2))
-                    .enter().append('line')
-                    .attr('x2', function(d) {return (d ? -1 : 1) * arrowOffset; })
-                    .attr('y2', arrowOffset);
-            }
+            resetBall(animation);
         }
 
-        function initTriangle() {
+        function initArrows() {
 
-            initTriangleContainers();
-            initArrowHead();
-            initLineBody();
-            initBall();
+            initHeightArrow();
+            initTriangle();
 
-            updateTriangle();
-
-            function initTriangleContainers() {
+            function initHeightArrow() {
                 svg.append('g')
-                    .attr('transform', 'translate(' + ballDim.x + ',' + (height-ballDim.y) + ')')
-                    .attr('id', 'triangle');
-                d3.select('#triangle').append('g')
-                    .attr('id', 'triangleRight');
-                d3.select('#triangleRight').append('g')
-                    .attr('id', 'triangleTop');
-                d3.select('#triangle').append('g')
-                    .attr('id', 'velocity');
-                d3.select('#velocity').append('g')
-                    .attr('id', 'velocityArrowHead');
+                    .attr('transform', 'translate(' + ballDim.x + ',' + height + ')')
+                    .attr('id', 'heightArrowContainer');
+
+                d3.select('#heightArrowContainer').append('line')
+                    .attr('id', 'heightLineBody');
+
+                initArrowHeads();
+
+                updateHeightArrow();
+
+                function initArrowHeads() {
+                    d3.select('#heightArrowContainer').append('g')
+                        .attr('id', 'heightArrowHeadContainer');
+
+                    d3.select('#heightArrowHeadContainer').selectAll('line')
+                        .data(d3.range(2))
+                        .enter().append('line')
+                        .attr('x2', function(d) {return (d ? -1 : 1) * arrowOffset; })
+                        .attr('y2', -arrowOffset);
+
+                    d3.select('#heightArrowContainer').append('g')
+                        .attr('id', 'heightTopArrowHeadContainer');
+
+                    d3.select('#heightTopArrowHeadContainer').selectAll('line')
+                        .data(d3.range(2))
+                        .enter().append('line')
+                        .attr('x2', function(d) {return (d ? -1 : 1) * arrowOffset; })
+                        .attr('y2', arrowOffset);
+                }
             }
 
-            function initArrowHead() {
-                // horizontal line arrowHead
-                d3.select('#triangleRight').selectAll('line')
-                    .data(d3.range(2))
-                    .enter().append('line')
-                    .attr('x2', -arrowOffset)
-                    .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; })
-                    .classed('split', true);
+            function initTriangle() {
 
-                // vertical line arrowhead
-                d3.select('#triangleTop').selectAll('line')
-                    .data(d3.range(2))
-                    .enter().append('line')
-                    .attr('x2', function(d) {return (d ? -1 : 1)*arrowOffset; })
-                    .attr('y2', arrowOffset)
-                    .classed('split', true);
+                initTriangleContainers();
+                initArrowHead();
+                initLineBody();
+                initBall();
 
-                // vector arrowHead
-                d3.select('#velocityArrowHead').selectAll('line')
-                    .data(d3.range(2))
-                    .enter().append('line')
-                    .attr('x2', -arrowOffset)
-                    .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; });
-            }
+                updateTriangle();
 
-            function initLineBody() {
-                // horizontal line
-                d3.select('#triangle').append('line')
-                    .attr('id', 'horizontalVel')
-                    .classed('split', true)
-                    .classed('splitLine', true);
-                // vertical line
-                d3.select('#triangleRight').append('line')
-                    .attr('id', 'verticalVel')
-                    .classed('split', true)
-                    .classed('splitLine', true);
-                // vector line
-                d3.select('#velocity').append('line')
-                    .attr('id', 'vectorLineBody');
-            }
+                function initTriangleContainers() {
+                    svg.append('g')
+                        .attr('transform', 'translate(' + ballDim.x + ',' + (height-ballDim.y) + ')')
+                        .attr('id', 'triangle');
+                    d3.select('#triangle').append('g')
+                        .attr('id', 'triangleRight');
+                    d3.select('#triangleRight').append('g')
+                        .attr('id', 'triangleTop');
+                    d3.select('#triangle').append('g')
+                        .attr('id', 'velocity');
+                    d3.select('#velocity').append('g')
+                        .attr('id', 'velocityArrowHead');
+                }
 
-            function initBall() {
+                function initArrowHead() {
+                    // horizontal line arrowHead
+                    d3.select('#triangleRight').selectAll('line')
+                        .data(d3.range(2))
+                        .enter().append('line')
+                        .attr('x2', -arrowOffset)
+                        .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; })
+                        .classed('split', true);
 
-                // draggable ball
-                d3.select('#triangle').append('circle')
-                    .attr('r', velBall.r)
-                    .attr('id', 'velBall')
-                    .style('fill-opacity', 0.3)
-                    .style('fill', '#2c8f9c')
-                    .call(d3.drag()
-                        .on("start", dragStart)
-                        .on("drag", dragVelBall)
-                        .on("end", dragEnd));
+                    // vertical line arrowhead
+                    d3.select('#triangleTop').selectAll('line')
+                        .data(d3.range(2))
+                        .enter().append('line')
+                        .attr('x2', function(d) {return (d ? -1 : 1)*arrowOffset; })
+                        .attr('y2', arrowOffset)
+                        .classed('split', true);
+
+                    // vector arrowHead
+                    d3.select('#velocityArrowHead').selectAll('line')
+                        .data(d3.range(2))
+                        .enter().append('line')
+                        .attr('x2', -arrowOffset)
+                        .attr('y2', function(d) {return (d ? -1 : 1)*arrowOffset; });
+                }
+
+                function initLineBody() {
+                    // horizontal line
+                    d3.select('#triangle').append('line')
+                        .attr('id', 'horizontalVel')
+                        .classed('split', true)
+                        .classed('splitLine', true);
+                    // vertical line
+                    d3.select('#triangleRight').append('line')
+                        .attr('id', 'verticalVel')
+                        .classed('split', true)
+                        .classed('splitLine', true);
+                    // vector line
+                    d3.select('#velocity').append('line')
+                        .attr('id', 'vectorLineBody');
+                }
+
+                function initBall() {
+
+                    // draggable ball
+                    d3.select('#triangle').append('circle')
+                        .attr('r', velBall.r)
+                        .attr('id', 'velBall')
+                        .style('fill-opacity', 0.3)
+                        .style('fill', '#2c8f9c')
+                        .classed('clickable', true)
+                        .call(d3.drag()
+                            .on("start", dragStart)
+                            .on("drag", dragVelBall)
+                            .on("end", dragEnd));
+                }
+
             }
 
         }
 
-    }
 
-    function initButtons() {
+        // Animation
+        function animateBall() {
+            if (animation.state) {
+                const g = -9.81;
 
-        const buttonOffset = {'playX': 150, 'pauseX': 100, 'resetX': 50, 'y': 20, 'line': 8};
-        const button = {'size': 30, 'rx': 5};
-        const resetRadius = 8;
-        const buttonArrowOffset = 4;
+                var t = (Date.now() - animation.start)/100;
 
-        svg.append('g')
-            .attr('transform', 'translate(' + (width - buttonOffset.playX) + ',' + buttonOffset.y + ')')
-            .attr('id', 'playContainer')
-            .on('click', clickPlay);
-        d3.select('#playContainer').append('rect')
-            .attr('height', button.size)
-            .attr('width', button.size)
-            .attr('rx', button.rx)
-            .attr('fill', '#75b4be')
-            .attr('id', 'play')
-            .classed('active', animate);
-        d3.select('#playContainer').append('path')
-            .attr('d', 'M ' + buttonOffset.line + ' ' + buttonOffset.line + ' L ' + buttonOffset.line + ' ' + (button.size - buttonOffset.line) + ' L ' + (button.size - buttonOffset.line) + ' ' + (button.size/2) + ' Z')
-            .style('fill', '#fff');
+                while (markerCount <= t) {
+                    var tempX = vectorCoords.x*markerCount + ballDim.x;
+                    var tempY = vectorCoords.y*markerCount + (1/2)*(g)*Math.pow(markerCount, 2) + ballDim.y;
 
-        svg.append('g')
-            .attr('transform', 'translate(' + (width - buttonOffset.pauseX) + ',' + buttonOffset.y + ')')
-            .attr('id', 'pauseContainer')
-            .on('click', clickPause);
-        d3.select('#pauseContainer').append('rect')
-            .attr('height', button.size)
-            .attr('width', button.size)
-            .attr('rx', button.rx)
-            .attr('fill', '#75b4be')
-            .attr('id', 'pause')
-            .classed('active', !animate);
-        d3.select('#pauseContainer').selectAll('line')
-            .data(d3.range(2))
-            .enter().append('line')
-            .attr('x1', function (d) {
-                return (d + 1) * (button.size / 3);
-            })
-            .attr('y1', buttonOffset.line)
-            .attr('x2', function (d) {
-                return (d + 1) * (button.size / 3);
-            })
-            .attr('y2', button.size - buttonOffset.line)
-            .style('stroke', '#fff')
-            .style('stroke-width', (button.size/6) + 'px');
+                    var launchCount = d3.select('#flightPath').datum();
 
-        svg.append('g')
-            .attr('transform', 'translate(' + (width - buttonOffset.resetX) + ',' + buttonOffset.y + ')')
-            .attr('id', 'resetContainer')
-            .on('click', clickReset);
-        d3.select('#resetContainer').append('rect')
-            .attr('height', button.size)
-            .attr('width', button.size)
-            .attr('rx', button.rx)
-            .attr('fill', '#75b4be')
-            .attr('id', 'reset')
-            .classed('active', false);
-        d3.select('#resetContainer').append('g')
-            .attr('id', 'resetSymbol');
-        d3.select('#resetSymbol').append('clipPath')
-            .attr('id', 'clipReset')
-            .append('path')
-            .attr('d', 'M ' + 0 + ' ' + 0 + ' L ' + button.size/2 + ' ' + 0 + ' L ' + button.size/2 + ' ' + button.size/3 +
-                ' L ' + button.size + ' ' + button.size/3 + ' L ' + button.size + ' ' + button.size + ' L ' + 0 + ' ' + button.size + ' Z')
-            .attr('id', 'clipPathReset');
-        d3.select('#resetSymbol').append('circle')
-            .attr('cx', button.size/2)
-            .attr('cy', button.size/2)
-            .attr('r', resetRadius)
-            .attr('clip-path', 'url(#clipReset)')
-            .style('fill-opacity', 0)
-            .style('stroke-opacity', 1)
-            .style('stroke', '#fff')
-            .style('stroke-width', '2px');
-        d3.select('#resetSymbol').append('g')
-            .attr('transform', 'translate(' + button.size/2 + ',' + (button.size/2 - resetRadius + 1) + ')')
-            .attr('id', 'resetArrowHead');
-        d3.select('#resetArrowHead').selectAll('line')
-            .data(d3.range(2))
-            .enter().append('line')
-            .attr('x2', -buttonArrowOffset)
-            .attr('y2', function(d) {return (d ? -1 : 1) * buttonArrowOffset; })
-            .style('stroke', '#fff')
-            .style('stroke-width', '2px');
+                    d3.select('#flightPath').append('circle')
+                        .attr('r', 2)
+                        .attr('cx', tempX)
+                        .attr('cy', height - tempY)
+                        .style('fill', colour(launchCount % 10));
 
-    }
+                    markerCount += 0.2;
+                }
 
+                // x = ut + (1/2)at^2 + (starting position)
+                var dimX = vectorCoords.x*t + ballDim.x;
+                var dimY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
 
-    // Animation
-    function animateBall() {
-        if (animate) {
-            const g = -9.81;
+                d3.select('#ball')
+                    .attr('cx', dimX)
+                    .attr('cy', height - dimY);
 
-            var t = (Date.now() - start)/100;
-
-            while (markerCount <= t) {
-                console.log(t + ', ' + markerCount);
-                var tempX = vectorCoords.x*markerCount + ballDim.x;
-                var tempY = vectorCoords.y*markerCount + (1/2)*(g)*Math.pow(markerCount, 2) + ballDim.y;
-
-                d3.select('#flightPath').append('circle')
-                    .attr('r', 2)
-                    .attr('cx', tempX)
-                    .attr('cy', height - tempY)
-                    .style('fill', colour(launchCount % 10));
-
-                markerCount += 0.2;
-            }
-
-            // x = ut + (1/2)at^2 + (starting position)
-            var dimX = vectorCoords.x*t + ballDim.x;
-            var dimY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
-
-            d3.select('#ball')
-                .attr('cx', dimX)
-                .attr('cy', height - dimY);
-
-            if (tempX > (width + 2*ballDim.r) || tempY < -2*ballDim.r) {
-                clickPause();
-                resetBall();
+                if (tempX > (width + 2*ballDim.r) || tempY < -2*ballDim.r) {
+                    clickPause(animation);
+                    resetBall(animation);
+                }
             }
         }
     }
-
-
-    // On click
-    function clickPlay() {
-        d3.select('#play').classed('active', true);
-        d3.select('#pause').classed('active', false);
-
-        launchCount += (mem == 0 && !animate) ? 1 : 0;
-
-        start = animate ? start : (Date.now() - mem);
-        animate = true;
-    }
-
-    function clickPause() {
-        d3.select('#play').classed('active', false);
-        d3.select('#pause').classed('active', true);
-
-        if (animate) {
-            mem = Date.now() - start;
-            animate = false;
-        }
-    }
-
-    function clickReset() {
-        d3.select('#reset').classed('active', true);
-        launchCount = 0;
-        setTimeout(function() {d3.select('#reset').classed('active', false); }, 200);
-        clickPause();
-        d3.select('#flightPath').selectAll('circle').remove();
-        resetBall();
-    }
-
 
     // On drag
     function dragStart() {
@@ -385,7 +246,7 @@
     }
 
     function dragActiveBall() {
-        if (!animate) {
+        if (!animation.state) {
             const lim = {'minY': ballDim.r, 'maxY': height-ballDim.r};
 
             ballDim.y = height - Math.max(Math.min(d3.event.y, lim.maxY), lim.minY);
@@ -407,7 +268,7 @@
     }
 
     function dragVelBall() {
-        if (!animate) {
+        if (!animation.state) {
             var lim = {'minX': 0, 'minY': 0, 'maxX': width - ballDim.x - velBall.r, 'maxY': height - ballDim.y - velBall.r};
 
             var tempX = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
@@ -439,7 +300,7 @@
 
 
     // Updates and resets
-    function resetBall() {
+    function resetBall(animation) {
         d3.select('#ball')
             .style('fill-opacity', 0)
             .attr('cx', ballDim.x)
@@ -448,7 +309,7 @@
             .duration(500)
             .style('fill-opacity', 1);
 
-        mem = 0;
+        animation.mem = 0;
         markerCount = 0;
     }
 

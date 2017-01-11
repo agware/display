@@ -5,56 +5,22 @@
     <title>Projectile2</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <style>
-
-        circle {
-            fill: #2c8f9c;
-            fill-opacity: 1;
-        }
-
-        line {
-            stroke: #000;
-            stroke-width: 2px;
-        }
-
-        text {
-            font-family: 'Open Sans', sans-serif;
-            font-size: 18px;
-            font-weight: bold;
-            fill: #000;
-        }
-
-        div {
-            float: left;
-            margin-right: 2px;
-        }
-
-        .split {
-            stroke: #808080;
-        }
-
-        .splitLine {
-            stroke-dasharray: 5, 5;
-        }
-
-        .active {
-            stroke: #000;
-            stroke-width: 2px;
-        }
-
-        .hover {
-            fill: #2a6d7a;
-        }
-
-    </style>
+    <link rel="stylesheet" type="text/css" href="../scripts/styles.css">
 
 </head>
 <body>
 
-    <div id="animation"></div>
-    <div id="control"></div>
+<div id="wrapper">
+    <div id="container">
+        <div id="animation"></div>
+        <div id="control"></div>
+    </div>
+</div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../scripts/actionButtons.js" type="text/javascript"></script>
+<script src="../scripts/radioButtons.js" type="text/javascript"></script>
+
 <script>
 
     const height = 500;
@@ -67,22 +33,20 @@
     const arrowOffset = 8;
     const colour = d3.scaleOrdinal(d3.schemeCategory10);
 
-    var animate = false;
-    var start = Date.now();
-    var mem = 0;
-    var launchCount = 0;
     var markerCount = 1;
+    var animation = {'start': Date.now(), 'mem': 0, 'state': false};
 
-    initAnimation();
-    initControl();
+    init();
 
-    d3.timer(animateBall);
-
-
-    // Initialise everything
-    function initAnimation() {
+    function init() {
         var animationSvg = d3.select('div#animation').append('svg')
             .attr('width', animationWidth)
+            .attr('height', height)
+            .attr('overflow', 'hidden')
+            .style('border', '1px solid black');
+
+        var controlSvg = d3.select('div#control').append('svg')
+            .attr('width', controlWidth)
             .attr('height', height)
             .attr('overflow', 'hidden')
             .style('border', '1px solid black');
@@ -90,30 +54,21 @@
         initArrows();
         initBall();
 
-        function initBall() {
+        initButtons(controlSvg, animation, true);
 
-            animationSvg.append('g')
-                .attr('id', 'flightPath');
+        const ids = ['horizontal', 'vertical', 'both'];
+        controlSvg.append('g')
+            .attr('transform', 'translate(0,' + (90) + ')')
+            .attr('id', 'radioContainer');
+        initRadio(d3.select('#radioContainer'), ids);
 
-            animationSvg.append('circle')
-                .attr('cx', ballDim.x)
-                .attr('cy', height - ballDim.y)
-                .attr('r', ballDim.r)
-                .attr('id', 'shadowBall')
-                .style('fill-opacity', 0.3);
+        d3.select('#verticalRadio').on('click', clickVertical);
+        d3.select('#horizontalRadio').on('click', clickHorizontal);
+        d3.select('#bothRadio').on('click', clickBoth);
 
-            animationSvg.append('circle')
-                .attr('r', ballDim.r)
-                .attr('id', 'ball')
-                .call(d3.drag()
-                    .on("start", dragStart)
-                    .on("drag", dragActiveBall)
-                    .on("end", dragEnd))
-                .on("mouseover", mouseOver)
-                .on("mouseout", mouseOut);
+        initVariables();
 
-            resetBall();
-        }
+        d3.timer(animateBall);
 
         function initArrows() {
 
@@ -194,6 +149,7 @@
                         .attr('r', velBall.r)
                         .attr('id', 'velBall')
                         .style('fill-opacity', 0.3)
+                        .classed('clickable', true)
                         .call(d3.drag()
                             .on("start", dragStart)
                             .on("drag", dragVelBall)
@@ -203,131 +159,32 @@
             }
 
         }
-    }
+        function initBall() {
 
-    function initControl() {
-        var controlSvg = d3.select('div#control').append('svg')
-            .attr('width', controlWidth)
-            .attr('height', height)
-            .attr('overflow', 'hidden')
-            .style('border', '1px solid black');
+            var launchCount = 0;
+            animationSvg.append('g')
+                .attr('id', 'flightPath')
+                .datum(launchCount);
 
-        initButtons();
-        initRadio();
-        initVariables();
+            animationSvg.append('circle')
+                .attr('cx', ballDim.x)
+                .attr('cy', height - ballDim.y)
+                .attr('r', ballDim.r)
+                .attr('id', 'shadowBall')
+                .style('fill-opacity', 0.3);
 
-        function initButtons() {
+            animationSvg.append('circle')
+                .attr('r', ballDim.r)
+                .attr('id', 'ball')
+                .classed('clickable', true)
+                .call(d3.drag()
+                    .on("start", dragStart)
+                    .on("drag", dragActiveBall)
+                    .on("end", dragEnd))
+                .on("mouseover", mouseOver)
+                .on("mouseout", mouseOut);
 
-            const button = {'size': 30, 'rx': 5};
-            const buttonOffset = {'playX': 35, 'pauseX': 85, 'resetX': 135, 'y': 20, 'line': 8};
-            const resetRadius = 8;
-            const buttonArrowOffset = 4;
-
-            controlSvg.append('g')
-                .attr('transform', 'translate(' + buttonOffset.playX + ',' + buttonOffset.y + ')')
-                .attr('id', 'playContainer')
-                .on('click', clickPlay);
-            d3.select('#playContainer').append('rect')
-                .attr('height', button.size)
-                .attr('width', button.size)
-                .attr('rx', button.rx)
-                .attr('fill', '#75b4be')
-                .attr('id', 'play')
-                .classed('active', animate);
-            d3.select('#playContainer').append('path')
-                .attr('d', 'M ' + buttonOffset.line + ' ' + buttonOffset.line + ' L ' + buttonOffset.line + ' ' + (button.size - buttonOffset.line) + ' L ' + (button.size - buttonOffset.line) + ' ' + (button.size/2) + ' Z')
-                .style('fill', '#fff');
-
-            controlSvg.append('g')
-                .attr('transform', 'translate(' + buttonOffset.pauseX + ',' + buttonOffset.y + ')')
-                .attr('id', 'pauseContainer')
-                .on('click', clickPause);
-            d3.select('#pauseContainer').append('rect')
-                .attr('height', button.size)
-                .attr('width', button.size)
-                .attr('rx', button.rx)
-                .attr('fill', '#75b4be')
-                .attr('id', 'pause')
-                .classed('active', !animate);
-            d3.select('#pauseContainer').selectAll('line')
-                .data(d3.range(2))
-                .enter().append('line')
-                .attr('x1', function (d) {
-                    return (d + 1) * (button.size / 3);
-                })
-                .attr('y1', buttonOffset.line)
-                .attr('x2', function (d) {
-                    return (d + 1) * (button.size / 3);
-                })
-                .attr('y2', button.size - buttonOffset.line)
-                .style('stroke', '#fff')
-                .style('stroke-width', (button.size/6) + 'px');
-
-            controlSvg.append('g')
-                .attr('transform', 'translate(' + buttonOffset.resetX + ',' + buttonOffset.y + ')')
-                .attr('id', 'resetContainer')
-                .on('click', clickReset);
-            d3.select('#resetContainer').append('rect')
-                .attr('height', button.size)
-                .attr('width', button.size)
-                .attr('rx', button.rx)
-                .attr('fill', '#75b4be')
-                .attr('id', 'reset')
-                .classed('active', false);
-            d3.select('#resetContainer').append('g')
-                .attr('id', 'resetSymbol');
-            d3.select('#resetSymbol').append('clipPath')
-                .attr('id', 'clipReset')
-                .append('path')
-                .attr('d', 'M ' + 0 + ' ' + 0 + ' L ' + button.size/2 + ' ' + 0 + ' L ' + button.size/2 + ' ' + button.size/3 +
-                    ' L ' + button.size + ' ' + button.size/3 + ' L ' + button.size + ' ' + button.size + ' L ' + 0 + ' ' + button.size + ' Z')
-                .attr('id', 'clipPathReset');
-            d3.select('#resetSymbol').append('circle')
-                .attr('cx', button.size/2)
-                .attr('cy', button.size/2)
-                .attr('r', resetRadius)
-                .attr('clip-path', 'url(#clipReset)')
-                .style('fill-opacity', 0)
-                .style('stroke-opacity', 1)
-                .style('stroke', '#fff')
-                .style('stroke-width', '2px');
-            d3.select('#resetSymbol').append('g')
-                .attr('transform', 'translate(' + button.size/2 + ',' + (button.size/2 - resetRadius + 1) + ')')
-                .attr('id', 'resetArrowHead');
-            d3.select('#resetArrowHead').selectAll('line')
-                .data(d3.range(2))
-                .enter().append('line')
-                .attr('x2', -buttonArrowOffset)
-                .attr('y2', function(d) {return (d ? -1 : 1) * buttonArrowOffset; })
-                .style('stroke', '#fff')
-                .style('stroke-width', '2px');
-
-        }
-
-        function initRadio() {
-            const radioOffset = {'x': 30, 'y': 90, 'button': 50, 'textX': 20, 'textY': 4};
-            const radioRadius = 15;
-            const radioText = ['horizontal', 'vertical', 'both'];
-
-            controlSvg.append('g')
-                .attr('transform', 'translate(' + radioOffset.x + ',' + radioOffset.y + ')')
-                .attr('id', 'radio');
-            for (var m = 0; m < radioText.length; m++) {
-                d3.select('#radio').append('circle')
-                    .attr('cy', radioOffset.button * m)
-                    .attr('r', radioRadius)
-                    .attr('id', radioText[m] + 'Radio')
-                    .style('fill', '#8db6be')
-                    .classed('active', !m);
-                d3.select('#radio').append('text')
-                    .attr('x', radioOffset.textX)
-                    .attr('y', radioOffset.button * m + radioOffset.textY)
-                    .text(radioText[m]);
-            }
-
-            d3.select('#verticalRadio').on('click', clickVertical);
-            d3.select('#horizontalRadio').on('click', clickHorizontal);
-            d3.select('#bothRadio').on('click', clickBoth)
+            resetBall(animation);
         }
 
         function initVariables() {
@@ -413,133 +270,98 @@
             updateLines();
 
         }
-    }
 
+        function animateBall() {
+            if (animation.state) {
+                const g = -9.81;
+                const velArrowOffset = 5;
 
-    // Animation
-    function animateBall() {
-        if (animate) {
-            const g = -9.81;
-            const velArrowOffset = 5;
+                var t = (Date.now() - animation.start)/100;
 
-            var t = (Date.now() - start)/100;
+                if (t >= markerCount) {
+                    // x = ut + (1/2)at^2 + (starting position)
+                    var tempX = vectorCoords.x*markerCount + ballDim.x;
+                    var tempY = vectorCoords.y*markerCount + (1/2)*(g)*Math.pow(markerCount, 2) + ballDim.y;
 
-            if (t >= markerCount) {
+                    // v = u + at
+                    var tempVelX = vectorCoords.x;
+                    var tempVelY = vectorCoords.y + g*markerCount;
+
+                    var launchCount = d3.select('#flightPath').datum();
+
+                    d3.select('#flightPath').append('g')
+                        .attr('transform', 'translate(' + tempX + ',' + (height-tempY) + ')')
+                        .attr('id', 'flight' + launchCount + 'container' + markerCount);
+
+                    d3.select('#flight' +  launchCount + 'container' + markerCount).append('circle')
+                        .attr('r', 5)
+                        .style('fill', colour(launchCount % 10));
+
+                    if (tempVelX > velArrowOffset) {
+                        d3.select('#flight' + launchCount + 'container' + markerCount).append('g')
+                            .attr('transform', 'translate(' + tempVelX + ',0)')
+                            .attr('id', 'x' + launchCount + 'container' + markerCount)
+                            .classed('horizontalLine', true);
+                        d3.select('#x' + launchCount + 'container' + markerCount).selectAll('line')
+                            .data(d3.range(2))
+                            .enter().append('line')
+                            .attr('x2', -velArrowOffset)
+                            .attr('y2', function(d) {return (d ? -1 : 1)*velArrowOffset; });
+                        d3.select('#x' + launchCount + 'container' + markerCount).append('line')
+                            .attr('x2', -tempVelX);
+                    }
+
+                    if (tempVelY > velArrowOffset || tempVelY < -velArrowOffset) {
+                        d3.select('#flight' + launchCount + 'container' + markerCount).append('g')
+                            .attr('transform', 'translate(0,' + (-tempVelY) + ')')
+                            .attr('id', 'y' + launchCount + 'container' + markerCount)
+                            .classed('verticalLine', true);
+                        d3.select('#y' + launchCount + 'container' + markerCount).selectAll('line')
+                            .data(d3.range(2))
+                            .enter().append('line')
+                            .attr('x2', function(d) {return (d ? -1 : 1)*velArrowOffset; })
+                            .attr('y2', tempVelY > 0 ? velArrowOffset : -velArrowOffset);
+                        d3.select('#y' + launchCount + 'container' + markerCount).append('line')
+                            .attr('y2', tempVelY);
+                    }
+
+                    updateLineVisibility();
+
+                    markerCount += 2;
+                }
+
                 // x = ut + (1/2)at^2 + (starting position)
-                var tempX = vectorCoords.x*markerCount + ballDim.x;
-                var tempY = vectorCoords.y*markerCount + (1/2)*(g)*Math.pow(markerCount, 2) + ballDim.y;
+                var dimX = vectorCoords.x*t + ballDim.x;
+                var dimY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
 
-                // v = u + at
-                var tempVelX = vectorCoords.x;
-                var tempVelY = vectorCoords.y + g*markerCount;
+                d3.select('#ball')
+                    .attr('cx', dimX)
+                    .attr('cy', height - dimY);
 
-                d3.select('#flightPath').append('g')
-                    .attr('transform', 'translate(' + tempX + ',' + (height-tempY) + ')')
-                    .attr('id', 'flight' + launchCount + 'container' + markerCount);
-
-                d3.select('#flight' +  launchCount + 'container' + markerCount).append('circle')
-                    .attr('r', 5)
-                    .style('fill', colour(launchCount % 10));
-
-                if (tempVelX > velArrowOffset) {
-                    d3.select('#flight' + launchCount + 'container' + markerCount).append('g')
-                        .attr('transform', 'translate(' + tempVelX + ',0)')
-                        .attr('id', 'x' + launchCount + 'container' + markerCount)
-                        .classed('horizontalLine', true);
-                    d3.select('#x' + launchCount + 'container' + markerCount).selectAll('line')
-                        .data(d3.range(2))
-                        .enter().append('line')
-                        .attr('x2', -velArrowOffset)
-                        .attr('y2', function(d) {return (d ? -1 : 1)*velArrowOffset; });
-                    d3.select('#x' + launchCount + 'container' + markerCount).append('line')
-                        .attr('x2', -tempVelX);
+                if (tempX > (animationWidth + 2*ballDim.r) || tempY < -2*ballDim.r) {
+                    clickPause(animation);
+                    resetBall(animation);
                 }
-
-                if (tempVelY > velArrowOffset || tempVelY < -velArrowOffset) {
-                    d3.select('#flight' + launchCount + 'container' + markerCount).append('g')
-                        .attr('transform', 'translate(0,' + (-tempVelY) + ')')
-                        .attr('id', 'y' + launchCount + 'container' + markerCount)
-                        .classed('verticalLine', true);
-                    d3.select('#y' + launchCount + 'container' + markerCount).selectAll('line')
-                        .data(d3.range(2))
-                        .enter().append('line')
-                        .attr('x2', function(d) {return (d ? -1 : 1)*velArrowOffset; })
-                        .attr('y2', tempVelY > 0 ? velArrowOffset : -velArrowOffset);
-                    d3.select('#y' + launchCount + 'container' + markerCount).append('line')
-                        .attr('y2', tempVelY);
-                }
-
-                updateLineVisibility();
-
-                markerCount += 2;
-            }
-
-            // x = ut + (1/2)at^2 + (starting position)
-            var dimX = vectorCoords.x*t + ballDim.x;
-            var dimY = vectorCoords.y*t + (1/2)*(g)*Math.pow(t, 2) + ballDim.y;
-
-            d3.select('#ball')
-                .attr('cx', dimX)
-                .attr('cy', height - dimY);
-
-            if (tempX > (animationWidth + 2*ballDim.r) || tempY < -2*ballDim.r) {
-                clickPause();
-                resetBall();
             }
         }
     }
 
-
-    // On click
-    function clickPlay() {
-        d3.select('#play').classed('active', true);
-        d3.select('#pause').classed('active', false);
-
-        launchCount += (mem == 0 && !animate) ? 1 : 0;
-
-        start = animate ? start : (Date.now() - mem);
-        animate = true;
-    }
-
-    function clickPause() {
-        d3.select('#play').classed('active', false);
-        d3.select('#pause').classed('active', true);
-
-        if (animate) {
-            mem = Date.now() - start;
-            animate = false;
-        }
-    }
-
-    function clickReset() {
-        d3.select('#reset').classed('active', true);
-        launchCount = 0;
-        setTimeout(function() {d3.select('#reset').classed('active', false); }, 200);
-        clickPause();
-        d3.select('#flightPath').selectAll('g').remove();
-        resetBall();
-    }
-
-
-    function clickVertical() {
-        d3.select('#verticalRadio').classed('active', true);
-        d3.select('#horizontalRadio').classed('active', false);
-        d3.select('#bothRadio').classed('active', false);
+    function clickHorizontal () {
+        d3.select('#radiohorizontal').selectAll('circle').classed('active', false);
+        d3.select('#horizontalRadio').classed('active', true);
 
         updateLineVisibility();
     }
 
-    function clickHorizontal () {
-        d3.select('#verticalRadio').classed('active', false);
-        d3.select('#horizontalRadio').classed('active', true);
-        d3.select('#bothRadio').classed('active', false);
+    function clickVertical() {
+        d3.select('#radiohorizontal').selectAll('circle').classed('active', false);
+        d3.select('#verticalRadio').classed('active', true);
 
         updateLineVisibility();
     }
 
     function clickBoth() {
-        d3.select('#verticalRadio').classed('active', false);
-        d3.select('#horizontalRadio').classed('active', false);
+        d3.select('#radiohorizontal').selectAll('circle').classed('active', false);
         d3.select('#bothRadio').classed('active', true);
 
         updateLineVisibility();
@@ -552,7 +374,7 @@
     }
 
     function dragActiveBall() {
-        if (!animate) {
+        if (!animation.state) {
             const lim = {'minY': ballDim.r, 'maxY': height-ballDim.r};
 
             ballDim.y = height - Math.max(Math.min(d3.event.y, lim.maxY), lim.minY);
@@ -574,7 +396,7 @@
     }
 
     function dragVelBall() {
-        if (!animate) {
+        if (!animation.state) {
             var lim = {'minX': 0, 'minY': 0, 'maxX': 100, 'maxY': 100};
 
             var tempX = Math.max(Math.min(d3.event.x, lim.maxX), lim.minX);
@@ -608,7 +430,7 @@
 
 
     // Updates and resets
-    function resetBall() {
+    function resetBall(animation) {
         d3.select('#ball')
             .style('fill-opacity', 0)
             .attr('cx', ballDim.x)
@@ -617,7 +439,7 @@
             .duration(500)
             .style('fill-opacity', 1);
 
-        mem = 0;
+        animation.mem = 0;
         markerCount = 1;
     }
 

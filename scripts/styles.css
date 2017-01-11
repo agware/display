@@ -1,0 +1,50 @@
+circle {
+    fill: #2c8f9c;
+    fill-opacity: 1;
+}
+
+line {
+    stroke: #000;
+    stroke-width: 2px;
+}
+
+text {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 18px;
+    font-weight: bold;
+    fill: #000;
+}
+
+#wrapper {
+    text-align: center;
+}
+
+#container {
+    display: inline-block;
+}
+
+#animation, #control {
+    float: left;
+    margin-right: 2px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.split {
+    stroke: #808080;
+}
+
+.splitLine {
+    stroke-dasharray: 5, 5;
+}
+
+.active {
+    stroke: #000;
+    stroke-width: 2px;
+}
+
+.hover {
+    fill: #2a6d7a;
+}

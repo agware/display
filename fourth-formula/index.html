@@ -104,7 +104,7 @@
 
                 d3.select('#ball').attr('cx', loc);
 
-                if (d3.select('#numbersRadio').classed('active')) updateNumbers(Math.floor(secondCount*10)/10, scaledVel);
+                if (d3.select('#numbersRadio').classed('active')) updateNumbers(Math.floor(secondCount), scaledVel);
 
                 if (loc >= maxLoc) {
                     d3.select('#ball').attr('cx', maxLoc);

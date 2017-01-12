@@ -31,7 +31,7 @@
     const ballDim = {'x': 50, 'y': 100, 'r': 20};
     const vectorCoords = {'x': 50, 'y': 50};
     const arrowOffset = 8;
-    const colour = d3.scaleOrdinal(d3.schemeCategory10);
+    const colour = ['#f781bf', '#377eb8', '#e41a1c', '#4daf4a', '#984ea3', '#a65628'];
 
     var markerCount = 1;
     var animation = {'start': Date.now(), 'mem': 0, 'state': false};
@@ -62,9 +62,9 @@
             .attr('id', 'radioContainer');
         initRadio(d3.select('#radioContainer'), ids);
 
-        d3.select('#verticalRadio').on('click', clickVertical);
-        d3.select('#horizontalRadio').on('click', clickHorizontal);
-        d3.select('#bothRadio').on('click', clickBoth);
+        d3.select('#verticalRadioSelect').on('click', clickVertical);
+        d3.select('#horizontalRadioSelect').on('click', clickHorizontal);
+        d3.select('#bothRadioSelect').on('click', clickBoth);
 
         initVariables();
 
@@ -171,7 +171,8 @@
                 .attr('cy', height - ballDim.y)
                 .attr('r', ballDim.r)
                 .attr('id', 'shadowBall')
-                .style('fill-opacity', 0.3);
+                .style('fill-opacity', 0.3)
+                .classed('clickable', true);
 
             animationSvg.append('circle')
                 .attr('r', ballDim.r)
@@ -295,7 +296,7 @@
 
                     d3.select('#flight' +  launchCount + 'container' + markerCount).append('circle')
                         .attr('r', 5)
-                        .style('fill', colour(launchCount % 10));
+                        .style('fill', colour[launchCount % 6]);
 
                     if (tempVelX > velArrowOffset) {
                         d3.select('#flight' + launchCount + 'container' + markerCount).append('g')

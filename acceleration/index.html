@@ -15,6 +15,7 @@
 </div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="../scripts/curtain.js" type="text/javascript"></script>
 <script>
 
     /*Code consists of three main elements
@@ -31,10 +32,10 @@
     // Dot constants
     const dotsNum = 4;
 
-    const scalingFactor = 31;
-    const dotScalingFactor = scalingFactor/160;
+    const scalingFactor = 30;
+    const dotScalingFactor = 1/6;
     const ballOffset = 140;
-    var accInput = {'active': 180, 'min':100, 'max': 240};
+    var accInput = {'active': 130, 'min':100, 'max': 220};
     var accConverted = Math.floor((accInput.active)/scalingFactor)*scalingFactor;
     var start = Date.now();
 
@@ -46,7 +47,7 @@
         .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
         .attr('id', 'ballContainer');
 
-    initCurtain();
+    initCurtain(ballRadius, dotsNum);
     initBall();
     initControl();
     initDots();
@@ -67,7 +68,7 @@
     function initControl() {
 
         const controlOffset = {'control': 50, 'accText': 20, 'arrow': 10, 'dragBall': 5};
-        const fixedBallRadius = 20;
+        const fixedBallRadius = 8;
 
         animation.append('g')
             .attr('transform', 'translate(' + controlOffset.control + ',' + controlOffset.control + ')')
@@ -91,8 +92,8 @@
         // Draggable ball
         d3.select('#draggableContainer').append('circle')
             .attr('cx', -controlOffset.dragBall)
-            .attr('r', fixedBallRadius - controlOffset.dragBall)
-            .style('fill-opacity', 0.2)
+            .attr('r', 15)
+            .style('fill-opacity', 0.4)
             .classed('clickable', true)
             .call(d3.drag()
                 .on('start', dragStart)
@@ -101,7 +102,8 @@
 
         // FixedBall, last so start of arrow is hidden
         d3.select('#controlContainer').append('circle')
-            .attr('r', fixedBallRadius);
+            .attr('r', fixedBallRadius)
+            .style('fill', '#000');
 
         updateControl();
     }
@@ -151,21 +153,6 @@
         }
     }
 
-    function initCurtain() {
-        const curtainNum = 2*dotsNum;
-
-        d3.select('#ballContainer').append('g')
-            .attr('id', 'curtainContainer')
-            .selectAll('circle')
-            .data(d3.range(curtainNum)).enter()
-            .append('circle')
-            .attr('r', ballRadius)
-            .attr('id', function(d) {return 'curtain' + d; })
-            .style('fill', '#9ab6be');
-
-        updateCurtain();
-    }
-
     // Animate the movement of the ball across the screen
     function animate() {
         var secondCount = (Date.now() - start) / 1000;
@@ -192,11 +179,8 @@
 
     function dragAcc() {
         accInput.active = Math.max(Math.min(d3.event.x+accInput.active, accInput.max), accInput.min);
-        accConverted = Math.floor(accInput.active/scalingFactor)*scalingFactor;
 
-        updateControl();
-        updateDots();
-        updateCurtain();
+        updateDrag();
 
         // Creates a start point so long ago, the reset is triggered in the animation
         start -= 1000000;
@@ -212,6 +196,14 @@
         d3.select("#draggableContainer").attr('transform', 'translate(' + accInput.active + ',0)');
     }
 
+    function updateDrag() {
+        accConverted = Math.floor(accInput.active/scalingFactor)*scalingFactor;
+
+        updateControl();
+        updateDots();
+        updateCurtain(accConverted);
+    }
+
     function updateDots() {
         for (var k = 0; k < dotsNum; k++) {
             d3.select('#dots' + k)
@@ -224,17 +216,6 @@
                 .transition()
                 .attr('transform', 'translate(' + (accConverted*dotScalingFactor*(k) + scalingFactor) + ',0)');
             d3.select('#velText' + k).text((k*accConverted/scalingFactor) + 'm/s');
-        }
-    }
-
-    function updateCurtain() {
-        var curtainNum = d3.select('#curtainContainer').selectAll('circle').size();
-
-        for (var i = 0; i < curtainNum; i++) {
-            d3.select('#curtain' + i)
-                .transition()
-                .duration(750)
-                .attr('cx', (1/2)*accConverted*Math.pow(i/2, 2));
         }
     }
 

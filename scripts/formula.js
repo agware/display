@@ -35,19 +35,19 @@ function initFormulaRadio(g) {
         updateNumbers();
     }
 
-    d3.select('#formulaRadio').on('click', clickFormula);
-    d3.select('#numbersRadio').on('click', clickNumbers);
+    d3.select('#formulaRadioSelect').on('click', clickFormula);
+    d3.select('#numbersRadioSelect').on('click', clickNumbers);
 }
 
 function clickFormula() {
-    d3.select(this).classed('active',true);
+    d3.select('#formulaRadio').classed('active',true);
     d3.select('#numbersRadio').classed('active', false);
 
     updateFormula();
 }
 
 function clickNumbers() {
-    d3.select(this).classed('active',true);
+    d3.select('#numbersRadio').classed('active',true);
     d3.select('#formulaRadio').classed('active', false);
 
     updateNumbers();

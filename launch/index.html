@@ -25,7 +25,7 @@
     const velBall = {'r': 15};
     const vectorCoords = {'x': 50, 'y': 50};
     const arrowOffset = 8;
-    const colour = d3.scaleOrdinal(d3.schemeCategory10);
+    const colour = ['#f781bf', '#377eb8', '#e41a1c', '#4daf4a', '#984ea3', '#a65628'];
 
     var markerCount = 0;
     var animation = {'start': Date.now(), 'mem': 0, 'state': false};
@@ -64,7 +64,8 @@
                 .attr('cy', height - ballDim.y)
                 .attr('r', ballDim.r)
                 .attr('id', 'shadowBall')
-                .style('fill-opacity', 0.3);
+                .style('fill-opacity', 0.3)
+                .classed('clickable', true);
 
             svg.append('circle')
                 .attr('r', ballDim.r)
@@ -189,7 +190,6 @@
                         .attr('r', velBall.r)
                         .attr('id', 'velBall')
                         .style('fill-opacity', 0.3)
-                        .style('fill', '#2c8f9c')
                         .classed('clickable', true)
                         .call(d3.drag()
                             .on("start", dragStart)
@@ -219,7 +219,7 @@
                         .attr('r', 2)
                         .attr('cx', tempX)
                         .attr('cy', height - tempY)
-                        .style('fill', colour(launchCount % 10));
+                        .style('fill', colour[launchCount % 6]);
 
                     markerCount += 0.2;
                 }

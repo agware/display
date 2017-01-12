@@ -6,9 +6,9 @@ function initTrigRadio(g) {
 
     initRadio(g, ['sin', 'cos', 'tan']);
 
-    d3.select('#sinRadio').on('click', clickSin);
-    d3.select('#cosRadio').on('click', clickCos);
-    d3.select('#tanRadio').on('click', clickTan);
+    d3.select('#sinRadioSelect').on('click', clickSin);
+    d3.select('#cosRadioSelect').on('click', clickCos);
+    d3.select('#tanRadioSelect').on('click', clickTan);
 }
 
 function clickSin() {

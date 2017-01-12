@@ -19,6 +19,7 @@
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="../scripts/animationEls.js" type="text/javascript"></script>
+<script src="../scripts/curtain.js" type="text/javascript"></script>
 <script src="../scripts/actionButtons.js" type="text/javascript"></script>
 <script src="../scripts/formula.js" type="text/javascript"></script>
 <script src="../scripts/radioButtons.js" type="text/javascript"></script>
@@ -41,7 +42,7 @@
 
     function init() {
 
-        var animation = {'start': Date.now(), 'mem': 0, 'state': true};
+        var animation = {'start': Date.now(), 'mem': 0, 'state': false};
 
         var animationSvg = d3.select('div#animation').append('svg')
             .attr('width', animationWidth)
@@ -54,7 +55,15 @@
             .style('border', 'solid black 2px');
 
         const ballRadius = 38;
-        initBall(animationSvg, ballRadius);
+        const ballOffset = 180 - ballRadius;
+        animationSvg.append('g')
+            .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
+            .attr('id', 'ballContainer');
+
+        const num = 20;
+        initCurtain(ballRadius, num);
+
+        initBall(ballRadius);
 
         const formula = ['x', '=', '½', '(', 'u', '+', 'v', ')', 't'];
         const textGap = [0, 30, 30, 45, 15, 35, 33, 27, 20];
@@ -65,8 +74,8 @@
             .attr('id', 'radioContainer');
         initFormulaRadio(d3.select('#radioContainer'));
 
-        const num =2;
-        initDots(num, true);
+        const dotsNum = 2;
+        initDots(dotsNum, true);
 
         controlSvg.append('g')
             .attr('transform', 'translate(0,' + (-10) + ')')
@@ -98,7 +107,8 @@
 
                 if (d3.select('#numbersRadio').classed('active')) updateNumbers(Math.floor(secondCount*10)/10, scaledVel);
 
-                if (loc > distScale*convert(eqVars[0].active)) {
+                if (loc >= distScale*convert(eqVars[0].active)) {
+                    d3.select('#ball').attr('cx', distScale*convert(eqVars[0].active));
                     clickPause(animation);
                     setTimeout(function() {resetBall(animation); }, 500);
                 }
@@ -126,9 +136,17 @@
     }
 
     function updateDrag(index) {
+
+        index = index || 0;
+
         d3.select('#' + eqVars[index].name + 'Text').text(eqVars[index].eq + (index ? 1 : distScale)*Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
         d3.select('#' + eqVars[index].name + 'LineBody').attr('x2', eqVars[index].active);
         d3.select('#' + eqVars[index].name + 'DraggableContainer').attr('transform', 'translate(' + eqVars[index].active + ',0)');
+
+        // a = (v^2 - u^2)/2x
+        var acc = (Math.pow(convert(eqVars[2].active), 2) - Math.pow(convert(eqVars[1].active), 2))/(2*convert(eqVars[0].active)*distScale);
+
+        updateDistCurtain(acc, convert(eqVars[1].active), convert(eqVars[0].active)*distScale);
     }
 
     // Utils

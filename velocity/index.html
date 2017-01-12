@@ -30,8 +30,8 @@
 
     const marker = {'gap': 10, 'height': 100};
 
-    const scalingFactor = 45;
-    var velInput = {'active': 200, 'min': 100, 'max': 300};
+    const scalingFactor = 30;
+    var velInput = {'active': 150, 'min': 90, 'max': 230};
     var velScaled = Math.floor(velInput.active/scalingFactor)*scalingFactor;
     var start = Date.now();
 
@@ -57,7 +57,7 @@
 
         d3.select('#ballContainer').append('circle')
             .attr('r', ballRadius)
-            .attr('id', "ball");
+            .attr('id', 'ball');
     }
 
     function initMarker() {
@@ -111,7 +111,7 @@
     function initControl() {
 
         const controlOffset = {'control': 50, 'arrow': 10, 'velText': 25, 'dragBall': 5};
-        const fixedBallRadius = 20;
+        const fixedBallRadius = 8;
 
         animation.append('g')
             .attr('transform', 'translate(' + controlOffset.control + ',' + controlOffset.control + ')')
@@ -135,8 +135,8 @@
         // Draggable ball
         d3.select('#draggableContainer').append('circle')
             .attr('cx', -controlOffset.dragBall)
-            .attr('r', fixedBallRadius - controlOffset.dragBall)
-            .style('fill-opacity', 0.2)
+            .attr('r', 15)
+            .style('fill-opacity', 0.4)
             .classed('clickable', true)
             .call(d3.drag()
                 .on('start', dragStart)
@@ -145,7 +145,8 @@
 
         // FixedBall, last so start of arrow is hidden
         d3.select('#controlContainer').append('circle')
-            .attr('r', fixedBallRadius);
+            .attr('r', fixedBallRadius)
+            .style('fill', '#000');
 
         updateControl();
     }

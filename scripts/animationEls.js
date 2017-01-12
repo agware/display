@@ -2,13 +2,8 @@
  * Created by war434 on 9/01/2017.
  */
 
-function initBall(g, ballRadius) {
+function initBall(ballRadius) {
 
-    const ballOffset = 180 - ballRadius;
-
-    g.append('g')
-        .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
-        .attr('id', 'ballContainer');
     d3.select('#ballContainer').append('circle')
         .attr('r', ballRadius)
         .attr('id', 'ball')

@@ -153,13 +153,13 @@
 
                 // fixed ball
                 d3.select('#triangle').append('circle')
-                    .attr('r', ball.fixedR);
+                    .attr('r', ball.fixedR)
+                    .style('fill', '#000');
                 // draggable ball
                 d3.select('#triangle').append('circle')
                     .attr('r', ball.dragR)
                     .attr('id', 'dragBall')
                     .style('fill-opacity', 0.3)
-                    .style('fill', '#2c8f9c')
                     .classed('clickable', true)
                     .call(d3.drag()
                         .on("start", dragStart)

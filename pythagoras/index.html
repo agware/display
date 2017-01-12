@@ -132,13 +132,13 @@
 
             // fixed ball
             d3.select('#triangle').append('circle')
-                .attr('r', ball.fixedR);
+                .attr('r', ball.fixedR)
+                .style('fill', '#000');
             // draggable ball
             d3.select('#triangle').append('circle')
                 .attr('r', ball.dragR)
                 .attr('id', 'dragBall')
                 .style('fill-opacity', 0.3)
-                .style('fill', '#2c8f9c')
                 .classed('clickable', true)
                 .call(d3.drag()
                     .on("start", dragStart)
@@ -213,8 +213,8 @@
 
             const textOffset = 5;
 
-            var scaledX = Math.round(eqVars[0].active/scalingFactor);
-            var scaledY = Math.round(eqVars[1].active/scalingFactor);
+            var scaledX = Math.floor(eqVars[0].active/scalingFactor);
+            var scaledY = Math.floor(eqVars[1].active/scalingFactor);
             var scaledVel = Math.round(Math.pow(Math.pow(scaledX, 2)+Math.pow(scaledY, 2), (1/2))*10)/10;
 
             d3.select('#textX')

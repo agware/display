@@ -1,5 +1,5 @@
-circle {
-    fill: #2c8f9c;
+circle, rect {
+    fill: #20948B;
     fill-opacity: 1;
 }
 
@@ -29,6 +29,7 @@ text {
 }
 
 .clickable {
+    fill: #DE7A22;
     cursor: pointer;
 }
 
@@ -42,9 +43,18 @@ text {
 
 .active {
     stroke: #000;
+    stroke-opacity: 1;
     stroke-width: 2px;
 }
 
 .hover {
-    fill: #2a6d7a;
+    fill: #C76D1E;
+}
+
+.shadow {
+    fill: #BCDEDC;
+}
+
+.hidden {
+    fill-opacity: 0;
 }

@@ -4,9 +4,9 @@
 
 function initDrag(g) {
 
-    const fixedBallRadius = 20;
-    const dragBallRadius = fixedBallRadius - 5;
-    const dragOffset = {'x': fixedBallRadius + 5, 'gap': 70, 'accText': 20, 'dragBall': 5, 'arrow': 10, 'shift': 3};
+    const fixedBallRadius = 8;
+    const dragBallRadius = 15;
+    const dragOffset = {'x': fixedBallRadius + 12, 'gap': 70, 'accText': 20, 'dragBall': 5, 'arrow': 10, 'shift': 3};
 
     for (var n = 0; n < eqVars.length; n++) {
         g.append('g')
@@ -31,14 +31,15 @@ function initDrag(g) {
             .attr('cx', -dragOffset.arrow + dragOffset.shift)
             .attr('r', dragBallRadius)
             .attr('id', eqVars[n].name + 'DragBall')
-            .style('fill-opacity', 0.2)
+            .style('fill-opacity', 0.4)
             .classed('clickable', true)
             .call(d3.drag()
                 .on('start', dragStart)
                 .on('drag', dragUpdate)
                 .on('end', dragEnd));
         d3.select('#' + eqVars[n].name + 'Container').append('circle')
-            .attr('r', fixedBallRadius);
+            .attr('r', fixedBallRadius)
+            .style('fill', '#000');
 
         updateDrag(n);
     }

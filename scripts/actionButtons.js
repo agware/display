@@ -29,7 +29,7 @@ function initButtons(g, animation, launch) {
             .attr('width', dim.size)
             .attr('rx', dim.rx)
             .attr('id', button[i].id)
-            .style('fill', '#75b4be');
+            .classed('clickable', true);
 
         drawSymbols(button[i].id, dim);
 

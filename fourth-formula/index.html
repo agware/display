@@ -31,11 +31,10 @@
     const animationWidth = 700;
     const controlWidth = 200;
 
-    const scalingFactor = 29;
-    const distScale = 4;
+    const scalingFactor = 38;
 
-    var eqVars = [{'name': 'xz', 'active': 90, 'eq': 'x = ', 'measure': 'm'},
-                  {'name': 'u', 'active': 60, 'eq': 'u = ', 'measure': 'm/s'},
+    var eqVars = [{'name': 'tz', 'active': 90, 'eq': 't = ', 'measure': 's'},
+                  {'name': 'u', 'active': 79, 'eq': 'u = ', 'measure': 'm/s'},
                   {'name': 'v2', 'active': 120, 'eq': 'v = ', 'measure': 'm/s'}];
 
     init();
@@ -94,12 +93,12 @@
             if (animation.state) {
                 var secondCount = (Date.now() - animation.start) / 1000;
 
-                // t = 2*x/(v+u)
-                var t = 2*distScale*convert(eqVars[0].active)/(convert(eqVars[1].active)+convert(eqVars[2].active));
                 // a = (v-u)/t
-                var acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/t;
+                var acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/Math.floor(eqVars[0].active/scalingFactor);
                 // x = u*t + 1/2*a*t^2
                 var loc = convert(eqVars[1].active)*secondCount + (1/2)*acc*Math.pow(secondCount,2);
+                // x = u*t + 1/2*a*t^2
+                var maxLoc = convert(eqVars[1].active)*Math.floor(eqVars[0].active/scalingFactor) + (1/2)*acc*Math.pow(Math.floor(eqVars[0].active/scalingFactor),2);
                 // v = u + at
                 var scaledVel = Math.floor(eqVars[1].active/scalingFactor) + (acc > 0 ? Math.floor((acc/scalingFactor)*secondCount) : Math.ceil((acc/scalingFactor)*secondCount));
 
@@ -107,8 +106,8 @@
 
                 if (d3.select('#numbersRadio').classed('active')) updateNumbers(Math.floor(secondCount*10)/10, scaledVel);
 
-                if (loc >= distScale*convert(eqVars[0].active)) {
-                    d3.select('#ball').attr('cx', distScale*convert(eqVars[0].active));
+                if (loc >= maxLoc) {
+                    d3.select('#ball').attr('cx', maxLoc);
                     clickPause(animation);
                     setTimeout(function() {resetBall(animation); }, 500);
                 }
@@ -126,27 +125,32 @@
             d3.select('#topText' + n).text(Math.floor(eqVars[n + 1].active / scalingFactor) + 'm/s');
             d3.select('#dotLineBody' + n).attr('x2', convert(eqVars[n + 1].active) * dotScalingFactor + scalingFactor);
             d3.select('#arrowHead' + n).attr('transform', 'translate(' + (convert(eqVars[n + 1].active) * dotScalingFactor + scalingFactor) + ',0)');
-            d3.select('#bottomText' + n).text(distScale*Math.floor(eqVars[0].active/scalingFactor)*n + 'm');
+            d3.select('#bottomText' + n).text(Math.floor(eqVars[0].active/scalingFactor)*n + 's');
         }
+
+        var acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/Math.floor(eqVars[0].active/scalingFactor);
+        var maxLoc = convert(eqVars[1].active)*Math.floor(eqVars[0].active/scalingFactor) + (1/2)*acc*Math.pow(Math.floor(eqVars[0].active/scalingFactor),2);
 
         d3.select('#dots1')
             .transition()
             .duration(750)
-            .attr('transform', 'translate(' + distScale*convert(eqVars[0].active) + ',0)');
+            .attr('transform', 'translate(' + maxLoc + ',0)');
     }
 
     function updateDrag(index) {
 
         index = index || 0;
 
-        d3.select('#' + eqVars[index].name + 'Text').text(eqVars[index].eq + (index ? 1 : distScale)*Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
+        d3.select('#' + eqVars[index].name + 'Text').text(eqVars[index].eq + Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
         d3.select('#' + eqVars[index].name + 'LineBody').attr('x2', eqVars[index].active);
         d3.select('#' + eqVars[index].name + 'DraggableContainer').attr('transform', 'translate(' + eqVars[index].active + ',0)');
 
         // a = (v^2 - u^2)/2x
-        var acc = (Math.pow(convert(eqVars[2].active), 2) - Math.pow(convert(eqVars[1].active), 2))/(2*convert(eqVars[0].active)*distScale);
+        var acc = (convert(eqVars[2].active)-convert(eqVars[1].active))/Math.floor(eqVars[0].active/scalingFactor);
+        // x = u*t + 1/2*a*t^2
+        var maxLoc = convert(eqVars[1].active)*Math.floor(eqVars[0].active/scalingFactor) + (1/2)*acc*Math.pow(Math.floor(eqVars[0].active/scalingFactor),2);
 
-        updateDistCurtain(acc, convert(eqVars[1].active), convert(eqVars[0].active)*distScale);
+        updateDistCurtain(acc, convert(eqVars[1].active), maxLoc);
     }
 
     // Utils

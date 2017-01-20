@@ -2,26 +2,23 @@
  * Created by war434 on 9/01/2017.
  */
 
-function initButtons(g, animation, launch) {
+function initButtons() {
 
-    launch = launch || false;
-
-    const button = [{'id': 'play', 'x': 35, 'func': function() {return clickPlay(animation, launch); }},
-                    {'id': 'pause', 'x': 85, 'func': function() {return clickPause(animation); }},
-                    {'id': 'reset', 'x': 135, 'func': function() {return clickReset(animation, launch); }}];
+    const button = [{'id': 'play', 'x': 35, 'func': clickPlay},
+                    {'id': 'pause', 'x': 85, 'func': clickPause},
+                    {'id': 'reset', 'x': 135, 'func': clickReset}];
 
     const dim = {'size': 30, 'rx': 5};
     const offset = {'y': 20};
 
-
-    g.append('g').selectAll('g')
+    d3.select('#controlSvg').append('g').selectAll('g')
         .data(button).enter()
         .append('g')
         .attr('transform', function(d) {return 'translate(' + d.x + ',' + offset.y + ')'; })
-        .attr('id', function(d) {return d.id + 'Container'; });
+        .attr('id', function(d) {return d.id + 'G'; });
 
     for (var i = 0; i < button.length; i++) {
-        d3.select('#' + button[i].id + 'Container')
+        d3.select('#' + button[i].id + 'G')
             .on('click', button[i].func)
             .classed('clickable', true)
             .append('rect')
@@ -33,7 +30,7 @@ function initButtons(g, animation, launch) {
 
         drawSymbols(button[i].id, dim);
 
-        animation.state ? clickPlay(animation, launch) : clickPause(animation);
+        animation.state ? clickPlay() : clickPause();
     }
 }
 
@@ -44,13 +41,13 @@ function drawSymbols(id, dim) {
     // Init symbols
     switch (id) {
         case 'play':
-            d3.select('#playContainer').append('path')
+            d3.select('#playG').append('path')
                 .attr('d', 'M ' + offset.line + ' ' + offset.line + ' L ' + offset.line + ' ' + (dim.size - offset.line) + ' L ' + (dim.size - offset.line) + ' ' + (dim.size / 2) + ' Z')
                 .style('fill', '#fff');
             break;
 
         case 'pause':
-            d3.select('#pauseContainer').selectAll('line')
+            d3.select('#pauseG').selectAll('line')
                 .data(d3.range(2))
                 .enter().append('line')
                 .attr('x1', function (d) {
@@ -66,7 +63,7 @@ function drawSymbols(id, dim) {
             break;
 
         case 'reset':
-            d3.select('#resetContainer').append('g')
+            d3.select('#resetG').append('g')
                 .attr('id', 'resetSymbol');
             d3.select('#resetSymbol').append('clipPath')
                 .attr('id', 'clipReset')
@@ -99,21 +96,15 @@ function drawSymbols(id, dim) {
     }
 }
 
-function clickPlay(animation, launch) {
+function clickPlay() {
     d3.select('#play').classed('active', true);
     d3.select('#pause').classed('active', false);
-
-    if (launch) {
-        var launchCount = d3.select('#flightPath').datum();
-        launchCount += (animation.mem == 0 && !animation.state) ? 1 : 0;
-        d3.select('#flightPath').datum(launchCount);
-    }
 
     animation.start = animation.state ?  animation.start : (Date.now() - animation.mem);
     animation.state = true;
 }
 
-function clickPause(animation) {
+function clickPause() {
     d3.select('#play').classed('active', false);
     d3.select('#pause').classed('active', true);
 
@@ -123,14 +114,9 @@ function clickPause(animation) {
     }
 }
 
-function clickReset(animation, launch) {
+function clickReset() {
     d3.select('#reset').classed('active', true);
     setTimeout(function() {d3.select('#reset').classed('active', false); }, 200);
     clickPause(animation);
     resetBall(animation);
-
-    if (launch) {
-        d3.select('#flightPath').datum(0);
-        d3.select('#flightPath').selectAll("*").remove();
-    }
 }

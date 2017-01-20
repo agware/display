@@ -41,6 +41,10 @@ text {
     stroke-dasharray: 5, 5;
 }
 
+.greyArrow {
+    stroke: #696969;
+}
+
 .active {
     stroke: #000;
     stroke-opacity: 1;
@@ -55,6 +59,11 @@ text {
     fill: #BCDEDC;
 }
 
+.shadow2 {
+    fill: #F5D7BC;
+}
+
 .hidden {
     fill-opacity: 0;
+    stroke-opacity: 0;
 }

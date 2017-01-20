@@ -5,7 +5,7 @@
     <title>Third Formula</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="../scripts/styles.css">
+    <link rel="stylesheet" type="text/css" href="../scriptsShared/styles.css">
 
 </head>
 <body>
@@ -18,142 +18,99 @@
 </div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="../scripts/animationEls.js" type="text/javascript"></script>
-<script src="../scripts/curtain.js" type="text/javascript"></script>
-<script src="../scripts/actionButtons.js" type="text/javascript"></script>
-<script src="../scripts/formula.js" type="text/javascript"></script>
-<script src="../scripts/radioButtons.js" type="text/javascript"></script>
-<script src="../scripts/dragButtons.js" type="text/javascript"></script>
+<script src="../scripts1d/ball.js" type="text/javascript"></script>
+<script src="../scripts1d/drag.js" type="text/javascript"></script>
+<script src="../scripts1d/formula.js" type="text/javascript"></script>
+<script src="../scriptsShared/radio.js" type="text/javascript"></script>
+<script src="../scriptsShared/buttons.js" type="text/javascript"></script>
+<script src="../scripts1d/markPath.js" type="text/javascript"></script>
+<script src="../scriptsShared/utils.js" type="text/javascript"></script>
 
 <script>
 
-    const height = 350;
-    const animationWidth = 700;
-    const controlWidth = 200;
+    var inputs = [{'id': 'xLim', 'name': 't', 'val': 8, 'measure': 'm'},
+                  {'id': 'u', 'name': 'u', 'val': 3, 'measure': 'm/s'},
+                  {'id': 'a', 'name': 'a', 'val': 3, 'measure': 'm/s²'}];
+    var vars = [{'id': 'u', 'val': 0},
+                {'id': 'a', 'val': 0},
+                {'id': 't', 'val': 0},
+                {'id': 'xLim', 'val': 0}];
+    var animation = {'start': Date.now(), 'mem': 0, 'state': false};
 
-    const scalingFactor = 29;
-    const distScale = 4;
+    initSvg();
+    initControls();
+    initAnimation();
 
-    var eqVars = [{'name': 'x2', 'active': 90, 'eq': 'x = ', 'measure': 'm'},
-                  {'name': 'u', 'active': 90, 'eq': 'u = ', 'measure': 'm/s'},
-                  {'name': 'a', 'active': 90, 'eq': 'a = ', 'measure': 'm/s²'}];
+    updateVars();
 
-    init();
+    d3.timer(animateBall);
 
-    function init() {
-        var animation = {'start': Date.now(), 'mem': 0, 'state': false};
-
-        var animationSvg = d3.select('div#animation').append('svg')
+    function initSvg () {
+        const height = 350;
+        const animationWidth = 700;
+        d3.select('div#animation').append('svg')
             .attr('width', animationWidth)
             .attr('height', height)
-            .attr('overflow', 'hidden');
-
-        var controlSvg = d3.select('div#control').append('svg')
-            .attr('height', height)
-            .attr('width', controlWidth)
             .attr('overflow', 'hidden')
-            .style('border', 'solid black 2px');
+            .attr('id', 'animationSvg');
 
+        const controlWidth = 200;
+        d3.select('div#control').append('svg')
+            .attr('width', controlWidth)
+            .attr('height', height)
+            .attr('overflow', 'hidden')
+            .attr('id', 'controlSvg')
+            .style('border', 'solid black 2px');
+    }
+
+    function initControls () {
+
+        initButtons();
+
+        const radioOffset = 100;
+        d3.select('#controlSvg').append('g')
+            .attr('transform', 'translate(0,' + radioOffset + ')')
+            .attr('id', 'formulaRadioG');
+        initFormulaRadio();
+
+        const dragOffset = 140;
+        d3.select('#controlSvg').append('g')
+            .attr('transform', 'translate(0,' + (parseInt(d3.select('#controlSvg').attr('height')) - dragOffset) + ')')
+            .attr('id', 'dragG');
+        initDrag(inputs);
+    }
+
+    function initAnimation () {
         const ballRadius = 38;
         const ballOffset = 180 - ballRadius;
-        animationSvg.append('g')
-            .attr('transform', 'translate(' + ballRadius + ',' + (height - ballOffset) + ')')
-            .attr('id', 'ballContainer');
-
-        const num = 6;
-        initCurtain(ballRadius, num);
+        d3.select('#animationSvg').append('g')
+            .attr('transform', 'translate(' + ballRadius + ',' + (parseInt(d3.select('#animationSvg').attr('height')) - ballOffset) + ')')
+            .attr('id', 'ballG');
 
         initBall(ballRadius);
 
         const formula = ['v', '²', '=', 'u', '²', '+', '2', '•', 'a', '•', 'x'];
         const textGap = [0, 30, 25, 35, 35, 25, 30, 30, 20, 30, 20];
-        initFormula(animationSvg, formula, textGap);
+        const formulaOffset = {'x': 230, 'y': 70};
+        d3.select('#animationSvg').append('g')
+            .attr('transform', 'translate(' + formulaOffset.x + ',' + formulaOffset.y + ')')
+            .attr('id', 'formulaG');
+        initFormula(formula, textGap);
 
-        controlSvg.append('g')
-            .attr('transform', 'translate(0,' + (65) + ')')
-            .attr('id', 'radioContainer');
-        initFormulaRadio(d3.select('#radioContainer'));
-
-        const dotsNum = 2;
-        initDots(dotsNum, true);
-
-        controlSvg.append('g')
-            .attr('transform', 'translate(0,' + (-10) + ')')
-            .attr('id', 'buttonContainer');
-        initButtons(d3.select('#buttonContainer'), animation);
-
-        controlSvg.append('g')
-            .attr('transform', 'translate(0,' + (height - 165) + ')')
-            .attr('id', 'dragContainer');
-        initDrag(d3.select('#dragContainer'));
-
-        d3.timer(animateBall);
-
-        // Animate
-        function animateBall() {
-            if (animation.state) {
-                var secondCount = (Date.now() - animation.start) / 1000;
-
-                // x = u*t + 1/2*a*t^2
-                var loc = convert(eqVars[1].active) * secondCount + (1 / 2) * convert(eqVars[2].active) * Math.pow(secondCount, 2);
-                var scaledLoc = Math.floor(eqVars[1].active / scalingFactor) * secondCount + (1 / 2) * Math.floor(eqVars[2].active / scalingFactor) * Math.pow(secondCount, 2);
-
-                d3.select('#ball').attr('cx', loc);
-
-                if (d3.select('#numbersRadio').classed('active')) {
-                    updateNumbers(Math.floor(secondCount), scaledLoc);
-                }
-
-                if (loc >= distScale * convert(eqVars[0].active)) {
-                    d3.select('#ball').attr('cx', distScale * convert(eqVars[0].active));
-                    clickPause(animation);
-                    setTimeout(function () {resetBall(animation) ;}, 500);
-                }
-            }
-        }
+        const dots = {'num': 2, 'top': 'v', 'bottom': 'x'};
+        initDots(dots);
     }
 
-    function updateDots() {
+    function updateVars() {
 
-        const dotScalingFactor = 1/6;
-
-        var numDots = d3.select('#dots').selectAll('circle').size();
-
-        for(var n=0; n<numDots; n++) {
-
-            // v^2 = u^2 + 2*a*x
-            var tempVel = Math.sqrt(Math.pow(convert(eqVars[1].active),2) + 2*convert(eqVars[2].active)*(distScale*convert(eqVars[0].active)*n));
-
-            d3.select('#dotLineBody' + n)
-                .transition()
-                .attr('x2', tempVel * dotScalingFactor + scalingFactor);
-            d3.select('#arrowHead' + n)
-                .transition()
-                .attr('transform', 'translate(' + (tempVel * dotScalingFactor + scalingFactor) + ',0)');
-            d3.select('#topText' + n).text((Math.round(10 * tempVel / scalingFactor) / 10) + 'm/s');
-            d3.select('#bottomText' + n).text(distScale*Math.floor(eqVars[0].active/scalingFactor)*n + 'm');
+        for (var i = 0; i < inputs.length; i++) {
+            var index = matchToObject(inputs[i].id, vars);
+            vars[index].val = inputs[i].val;
         }
 
-        d3.select('#dots1')
-            .transition()
-            .duration(750)
-            .attr('transform', 'translate(' + distScale*convert(eqVars[0].active) + ',0)');
-    }
-
-    function updateDrag(index) {
-
-        index = index || 0;
-
-        d3.select('#' + eqVars[index].name + 'Text').text(eqVars[index].eq + (index ? 1 : distScale)*Math.floor(eqVars[index].active/scalingFactor) + eqVars[index].measure);
-        d3.select('#' + eqVars[index].name + 'LineBody').attr('x2', eqVars[index].active);
-        d3.select('#' + eqVars[index].name + 'DraggableContainer').attr('transform', 'translate(' + eqVars[index].active + ',0)');
-
-        updateDistCurtain(convert(eqVars[2].active), convert(eqVars[1].active), convert(eqVars[0].active)*distScale);
-    }
-
-    // Utils
-    function convert(input) {
-        return Math.floor(input/scalingFactor)*scalingFactor;
+        updateCurtain();
+        updateDots();
+        if(d3.select('#numbersRadioBand').classed('active')) {updateNumbers(); }
     }
 
 </script>

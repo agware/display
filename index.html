@@ -5,14 +5,12 @@
     <title>Index</title>
 
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="../scriptsShared/styles.css">
+    <link rel="stylesheet" type="text/css" href="scriptsShared/styles.css">
 
 </head>
 <body>
 
-<div id="header">
-    <h1>Motion</h1>
-</div>
+<div id="header"></div>
 
 <div id="wrapper">
     <div id="container"></div>
@@ -23,10 +21,10 @@
 </div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="../scriptsShared/utils.js" type="text/javascript"></script>
+<script src="scriptsShared/utils.js" type="text/javascript"></script>
 <script>
 
-    d3.select('#header').on('click', navigateHome);
+    generateHeader();
 
     const dim = {headingWidth: 600, headingHeight: 60, linkWidth: 200, linkHeight: 100};
 
@@ -82,10 +80,8 @@
             d3.select('#' + categories[i].id + 'svg')
                 .attr('width', dim.linkWidth)
                 .attr('height', dim.linkHeight)
-                .datum(categories[i].link)
                 .on('mouseover', mouseOver)
-                .on('mouseout', mouseOut)
-                .on('click', clickLink);
+                .on('mouseout', mouseOut);
 
             if (categories[i].group == 'link') {
                 d3.select('#' + categories[i].id + 'svg').style('float', 'left');
@@ -103,7 +99,10 @@
                 .text(categories[i].text)
                 .style('font-size', '20px');
 
-            d3.select('#' + categories[i].id + 'svg').append('rect')
+            d3.select('#' + categories[i].id + 'svg')
+                .append('a')
+                .attr('xlink:href', categories[i].link)
+                .append('rect')
                 .attr('width', '100%')
                 .attr('height', '100%')
                 .attr('id', categories[i].id + 'rect')
@@ -115,13 +114,9 @@
 
     }
 
-    function clickLink() {
-        window.location = d3.select(this).datum();
-    }
-
     // On mouse over
     function mouseOver() {
-        d3.select(this).select('rect').style('fill-opacity', 0.2);
+        d3.select(this).select('rect').style('fill-opacity', 0.15);
     }
 
     function mouseOut() {

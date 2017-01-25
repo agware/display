@@ -10,9 +10,7 @@
 </head>
 <body>
 
-<div id="header">
-    <h1>Motion</h1>
-</div>
+<div id="header"></div>
 
 <div id="wrapper">
     <div id="container">
@@ -37,7 +35,7 @@
 
 <script>
 
-    d3.select('#header').on('click', navigateHome);
+    generateHeader();
 
     var inputs = [{'id': 'xLim', 'name': 'x', 'val': [14.4, 4], 'measure': 'm', 'numDraggable': 2},
                   {'id': 'u', 'name': 'u', 'val': [7, 12], 'measure': 'm/s', 'numDraggable': 2},

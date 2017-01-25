@@ -77,8 +77,20 @@ function generateHeader() {
 }
 
 function generateFooter () {
-    // ToDo: Stuff here
-    // Add text
+
+    var year = new Date().getFullYear();
+    var text = '© Copyright ' + year + ' CSIRO Australia.';
+
+    d3.select('#footer').append('svg')
+        .attr('height', 17)
+        .attr('width', 600)
+        .attr('id', 'footerSvg');
+
+    d3.select('#footerSvg').append('text')
+        .attr('x', 210)
+        .attr('y', 14)
+        .text(text)
+        .style('font-size', '11px');
 }
 
 

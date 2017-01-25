@@ -78,6 +78,7 @@ function generateHeader() {
 
 function generateFooter () {
     // ToDo: Stuff here
+    // Add text
 }
 
 

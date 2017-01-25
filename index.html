@@ -28,112 +28,120 @@
     <div id="container"></div>
 </div>
 
-<div id="footer">
-    <p>Owned by CSIRO.... etc.</p>
-</div>
+<div id="footer"></div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="scriptsShared/utils.js" type="text/javascript"></script>
 <script>
 
     generateHeader();
+    generateFooter();
 
-    const dim = {headingWidth: 600, headingHeight: 60, linkWidth: 200, linkHeight: 100};
+    const headings = [{'id': 'definitions', 'text': 'Definitions'},
+                      {'id': 'formulas1D', 'text': 'Formulas in 1-dimension'},
+                      {'id': 'splittingVectors', 'text': 'Splitting vectors'},
+                      {'id': 'formulas2D', 'text': 'Formulas in 2-dimensions'}];
+    const pages = [{'id': 'velocity', 'heading': 'definitions', 'text': 'Velocity', 'link': 'https://agware.github.io/display/velocity/'},
+                   {'id': 'acceleration', 'heading': 'definitions', 'text': 'Acceleration', 'link': 'https://agware.github.io/display/acceleration/'},
+                   {'id': 'formula1', 'heading': 'formulas1D', 'text': 'First formula', 'link': 'https://agware.github.io/display/first-formula/'},
+                   {'id': 'formula2', 'heading': 'formulas1D', 'text': 'Second formula', 'link': 'https://agware.github.io/display/second-formula/'},
+                   {'id': 'formula3', 'heading': 'formulas1D', 'text': 'Third formula', 'link': 'https://agware.github.io/display/third-formula/'},
+                   {'id': 'formula4', 'heading': 'formulas1D', 'text': 'Fourth formula', 'link': 'https://agware.github.io/display/fourth-formula/'},
+                   {'id': 'pythagoras', 'heading': 'splittingVectors', 'text': 'Pythagoras', 'link': 'https://agware.github.io/display/pythagoras/'},
+                   {'id': 'sohcahtoa', 'heading': 'splittingVectors', 'text': 'SohCahToa', 'link': 'https://agware.github.io/display/sohcahtoa/'},
+                   {'id': 'sohcahtoa2', 'heading': 'splittingVectors', 'text': 'SohCahToa 2', 'link': 'https://agware.github.io/display/sohcahtoa-second/'},
+                   {'id': 'd2Formula1', 'heading': 'formulas2D', 'text': 'First formula', 'link': 'https://agware.github.io/display/d2-first-formula/'},
+                   {'id': 'd2Formula2', 'heading': 'formulas2D', 'text': 'Second formula', 'link': 'https://agware.github.io/display/d2-second-formula/'},
+                   {'id': 'd2Formula3', 'heading': 'formulas2D', 'text': 'Third formula', 'link': 'https://agware.github.io/display/d2-third-formula/'},
+                   {'id': 'd2Formula4', 'heading': 'formulas2D', 'text': 'Fourth formula', 'link': 'https://agware.github.io/display/d2-fourth-formula/'}];
 
-    const categories = [
-        {id: 'motionDefinitions', group: 'heading', text:'Motion definitions'},
-        {id: 'velocity', group: 'link', text: 'Velocity', link: 'https://agware.github.io/display/velocity/'},
-        {id: 'acceleration', group: 'lastLink', text: 'Acceleration', link: 'https://agware.github.io/display/acceleration/'},
-        {id: 'formulas1D', group: 'heading', text:'Motion formulas in 1-dimension'},
-        {id: 'formula1', group: 'link', text: 'First formula', link: 'https://agware.github.io/display/first-formula/'},
-        {id: 'formula2', group: 'link', text: 'Second formula', link: 'https://agware.github.io/display/second-formula/'},
-        {id: 'formula3', group: 'link', text: 'Third formula', link: 'https://agware.github.io/display/third-formula/'},
-        {id: 'formula4', group: 'lastLink', text: 'Fourth formula', link: 'https://agware.github.io/display/fourth-formula/'},
-        {id: 'splittingVectors', group: 'heading', text:'Splitting vectors'},
-        {id: 'pythagoras', group: 'link', text: 'Pythagoras', link: 'https://agware.github.io/display/pythagoras/'},
-        {id: 'sohcahtoa', group: 'link', text: 'SohCahToa', link: 'https://agware.github.io/display/sohcahtoa/'},
-        {id: 'sohcahtoa2', group: 'lastLink', text: 'SohCahToa 2', link: 'https://agware.github.io/display/sohcahtoa-second/'},
-        {id: 'formulas2D', group: 'heading', text:'Motion formulas in 2-dimensions'},
-        {id: 'd2Formula1', group: 'link', text: 'First formula', link: 'https://agware.github.io/display/d2-first-formula/'},
-        {id: 'd2Formula2', group: 'link', text: 'Second formula', link: 'https://agware.github.io/display/d2-second-formula/'},
-        {id: 'd2Formula3', group: 'link', text: 'Third formula', link: 'https://agware.github.io/display/d2-third-formula/'},
-        {id: 'd2Formula4', group: 'lastLink', text: 'Fourth formula', link: 'https://agware.github.io/display/d2-fourth-formula/'}
-    ];
 
-    d3.select('#container').selectAll('div')
-        .data(categories).enter()
-        .append('div')
-        .attr('id', function(d) {return d.id; });
+    const width = 600;
+    const height0 = 60;
+    const fitPagesAcross = 3;
+    const page = {'topOffset': 30, 'bottomOffset': 10, 'height': 40};
 
-    for (var i = 0; i < categories.length; i++) {
-        d3.select('#' + categories[i].id).append('svg')
-            .attr('id', categories[i].id + 'svg')
+    for (var i = 0; i < headings.length; i++) {
+        d3.select('#container').append('div')
+            .attr('id', headings[i].id + 'Div')
+            .on('mouseover', mouseOverDiv)
+            .on('mouseout', mouseOutDiv);
+
+        d3.select('#' + headings[i].id + 'Div').append('svg')
+            .attr('width', width)
+            .attr('height', height0)
+            .attr('id', headings[i].id + 'Svg')
             .attr('overflow', 'hidden');
+            //.style('border', '2px solid black');
 
-        if (categories[i].group == 'heading') {
+        d3.select('#' + headings[i].id + 'Svg').append('g')
+            .attr('id', headings[i].id + 'pages');
 
-            const textOffset = 40;
+        d3.select('#' + headings[i].id + 'Svg').append('g')
+            .attr('id', headings[i].id + 'G');
 
-            d3.select('#' + categories[i].id + 'svg')
-                .attr('width', dim.headingWidth)
-                .attr('height', dim.headingHeight);
-
-            d3.select('#' + categories[i].id + 'svg').append('text')
-                .attr('y', textOffset)
-                .text(categories[i].text)
-                .style('font-size', '30px')
-                .style('font-weight', 'bold')
-                .style('text-decoration', 'underline');
-
-        } else if (categories[i].group == 'link' || categories[i].group == 'lastLink') {
-
-            const linkOffset = {'x': 15, 'text': 55};
-
-            d3.select('#' + categories[i].id + 'svg')
-                .attr('width', dim.linkWidth)
-                .attr('height', dim.linkHeight)
-                .on('mouseover', mouseOver)
-                .on('mouseout', mouseOut);
-
-            if (categories[i].group == 'link') {
-                d3.select('#' + categories[i].id + 'svg').style('float', 'left');
-            } else {
-                d3.select('#' + categories[i].id + 'svg').style('float', 'left');
-                d3.select('#' + categories[i].id + 'div').style('margin', linkOffset.last + 'px');
-            }
-
-            d3.select('#' + categories[i].id + 'svg').append('g')
-                .attr('transform', 'translate(' + linkOffset.x + ',0)')
-                .attr('id', categories[i].id + 'g');
-
-            d3.select('#' + categories[i].id + 'g').append('text')
-                .attr('y', linkOffset.text)
-                .text(categories[i].text)
-                .style('font-size', '20px');
-
-            d3.select('#' + categories[i].id + 'svg')
-                .append('a')
-                .attr('xlink:href', categories[i].link)
-                .append('rect')
-                .attr('width', '100%')
-                .attr('height', '100%')
-                .attr('id', categories[i].id + 'rect')
-                .style('fill', '#000')
-                .style('fill-opacity', 0)
-                .classed('clickable', true);
-
-        }
-
+        d3.select('#' + headings[i].id + 'G').append('text')
+            .attr('y', height0 - 20)
+            .text(headings[i].text)
+            .style('font-size', '30px')
+            .style('font-weight', 'bold');
     }
 
-    // On mouse over
-    function mouseOver() {
-        d3.select(this).select('rect').style('fill-opacity', 0.15);
+    for (var j = 0; j < pages.length; j++) {
+
+        var pageCount = d3.select('#' + pages[j].heading + 'Svg').selectAll('rect').size();
+        var tempHeight = Math.floor(pageCount/3)*page.height + page.topOffset;
+
+        d3.select('#' + pages[j].heading + 'pages')
+            .attr('transform', 'translate(0,' + (height0)  + ')')
+            .append('text')
+            .attr('x', (pageCount%fitPagesAcross)*width/fitPagesAcross + 10)
+            .attr('y', tempHeight)
+            .text(pages[j].text)
+            .style('font-size', '22px');
+
+        d3.select('#' + pages[j].heading + 'pages')
+            .append('a')
+            .attr('xlink:href', pages[j].link)
+            .append('rect')
+            .attr('x', (pageCount%fitPagesAcross)*width/fitPagesAcross)
+            .attr('y', tempHeight - page.height + 13)
+            .attr('height', page.height)
+            .attr('width', width/fitPagesAcross)
+            .style('fill', '#000')
+            .style('fill-opacity', 0)
+            .on('mouseover', mouseOverRect)
+            .on('mouseout', mouseOutRect);
     }
 
-    function mouseOut() {
-        d3.select(this).select('rect').style('fill-opacity', 0);
+    function mouseOverDiv () {
+        var pageCount = d3.select(this).selectAll('rect').size() - 1;
+        var tempId = d3.select(this).attr('id');
+        var id = tempId.substring(0, tempId.length - 'Div'.length);
+
+        var tempHeight = Math.floor(pageCount/fitPagesAcross)*page.height + page.topOffset + page.bottomOffset;
+
+        d3.select('#' + id + 'Svg').transition()
+            .attr('height', tempHeight + height0 );
     }
+
+    function mouseOutDiv () {
+        var tempId = d3.select(this).attr('id');
+        var id = tempId.substring(0, tempId.length - 'Div'.length);
+
+        d3.select('#' + id + 'Svg').transition()
+            .attr('height', height0);
+    }
+
+    function mouseOverRect() {
+
+        d3.select(this).style('fill-opacity', 0.15);
+    }
+
+    function mouseOutRect() {
+        d3.select(this).style('fill-opacity', 0);
+    }
+
 
 </script>
 

@@ -10,9 +10,9 @@ function generateHeader() {
         .attr('id', 'headerSvg');
 
     d3.select('#headerSvg').append('text')
-        .attr('x', 240)
+        .attr('x', 120)
         .attr('y', 45)
-        .text('Motion')
+        .text('Interactive Formulas')
         .style('font-size', '40px');
 
 
@@ -26,7 +26,7 @@ function generateHeader() {
         .style('font-size', '20px');
 
     d3.select('#homeG').append('a')
-        .attr('xlink:href', 'https://agware.github.io/display/home/')
+        .attr('xlink:href', 'https://agware.github.io/display/')
         .append('rect')
         .attr('height', 26)
         .attr('width', 90)
